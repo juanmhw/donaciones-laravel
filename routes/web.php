@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CampaniaReporteController;
 
 use App\Http\Controllers\{
     RoleController,
@@ -54,3 +55,11 @@ Route::get('/donaciones/{id}/reasignar', [DonacionController::class, 'reasignarF
 
 Route::post('/donaciones/{id}/reasignar', [DonacionController::class, 'reasignar'])
      ->name('donaciones.reasignar');
+
+// 1) Primero el reporte
+Route::get('/campanias/reporte-general', [CampaniaReporteController::class, 'general'])
+    ->name('campanias.reporteGeneral');
+
+// 2) Luego la resource, con restricción numérica en el id
+Route::resource('campanias', CampaniaController::class)
+     ->whereNumber('campania'); // param singular que usa la resource

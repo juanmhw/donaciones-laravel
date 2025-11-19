@@ -218,7 +218,14 @@
                                 <p>Saldos</p>
                             </a>
                         </li>
-
+                        
+                        <li class="nav-item">
+                            <a href="{{ route('campanias.reporteGeneral') }}" 
+                            class="nav-link {{ request()->routeIs('campanias.reporteGeneral') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-pie"></i>
+                                <p>Reporte campañas</p>
+                            </a>
+                        </li>
                     </ul>
                 </nav>
             </div>
