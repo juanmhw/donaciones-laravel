@@ -49,3 +49,8 @@ Route::get('asignaciones/{id}/asignar', [AsignacionController::class, 'asignar']
     ->name('asignaciones.asignar');
 Route::post('asignaciones/{id}/asignar', [AsignacionController::class, 'guardarAsignacion'])
     ->name('asignaciones.asignar.store');
+Route::get('/donaciones/{id}/reasignar', [DonacionController::class, 'reasignarForm'])
+     ->name('donaciones.reasignarForm');
+
+Route::post('/donaciones/{id}/reasignar', [DonacionController::class, 'reasignar'])
+     ->name('donaciones.reasignar');

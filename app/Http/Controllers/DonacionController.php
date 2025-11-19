@@ -168,4 +168,43 @@ class DonacionController extends Controller
 
         return redirect()->route('donaciones.index')->with('success','Donación eliminada.');
     }
+
+        public function reasignarForm($id)
+    {
+        $donacion = Donacion::findOrFail($id);
+        $campanias = Campania::where('activa', true)->get();
+
+        return view('donaciones.reasignar', compact('donacion', 'campanias'));
+    }
+
+    public function reasignar(Request $request, $id)
+    {
+        $donacion = Donacion::findOrFail($id);
+
+        $data = $request->validate([
+            'campaniaid' => 'required|integer|exists:campanias,campaniaid',
+        ]);
+
+        $campaniaNueva = Campania::findOrFail($data['campaniaid']);
+        $campaniaAnterior = Campania::findOrFail($donacion->campaniaid);
+
+        DB::transaction(function () use ($donacion, $campaniaAnterior, $campaniaNueva, $data) {
+
+            // 1) Ajustar montos
+            $campaniaAnterior->montorecaudado -= $donacion->monto;
+            $campaniaAnterior->save();
+
+            $campaniaNueva->montorecaudado += $donacion->monto;
+            $campaniaNueva->save();
+
+            // 2) Reasignar donación
+            $donacion->campaniaid = $data['campaniaid'];
+            $donacion->save();
+        });
+
+        return redirect()->route('donaciones.index')
+            ->with('success', 'Donación reasignada correctamente.');
+    }
+
+
 }

@@ -39,6 +39,10 @@
                             @csrf @method('DELETE')
                             <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar donación?')">🗑 Eliminar</button>
                         </form>
+                        <a href="{{ route('donaciones.reasignarForm', $d->donacionid) }}" 
+                            class="btn btn-sm btn-warning">
+                            Reasignar
+                        </a>
                     </td>
                 </tr>
             @empty
