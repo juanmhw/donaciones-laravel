@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CampaniaReporteController;
+use App\Http\Controllers\UsuarioReporteController;
+use App\Http\Controllers\CampaniaCierreController;
+use App\Http\Controllers\CentroMensajesController;
+
+
 
 use App\Http\Controllers\{
     RoleController,
@@ -41,6 +46,24 @@ Route::resource('respuestasmensajes', RespuestaMensajeController::class)->parame
  * - Ver/gestionar detalles (ítems)
  * - Asignar donaciones (con saldos) a una asignación
  */
+// Estado de cuenta por donante
+Route::get('/usuarios/{usuario}/estado-cuenta', [UsuarioReporteController::class, 'estadoCuenta'])
+    ->name('usuarios.estadoCuenta')
+    ->whereNumber('usuario');
+
+// Seleccionar usuario para estado de cuenta
+Route::get('/estado-cuenta', [UsuarioReporteController::class, 'seleccionarUsuario'])
+    ->name('usuarios.estadoCuentaSeleccion');
+
+// Procesar selección y redirigir al estado de cuenta
+Route::get('/estado-cuenta/mostrar', [UsuarioReporteController::class, 'mostrarDesdeSeleccion'])
+    ->name('usuarios.estadoCuentaMostrar');
+
+// Estado de cuenta de un usuario concreto
+Route::get('/usuarios/{usuario}/estado-cuenta', [UsuarioReporteController::class, 'estadoCuenta'])
+    ->name('usuarios.estadoCuenta')
+    ->whereNumber('usuario');
+
 Route::get('asignaciones/{id}/detalles', [AsignacionController::class, 'detalles'])
     ->name('asignaciones.detalles');
 Route::post('asignaciones/{id}/detalles', [AsignacionController::class, 'guardarDetalle'])
@@ -60,6 +83,25 @@ Route::post('/donaciones/{id}/reasignar', [DonacionController::class, 'reasignar
 Route::get('/campanias/reporte-general', [CampaniaReporteController::class, 'general'])
     ->name('campanias.reporteGeneral');
 
+// Cierre de campaña
+Route::get('/campanias/cierre', [CampaniaCierreController::class, 'seleccionarCampania'])
+    ->name('campanias.cierreSeleccion');
+
+Route::get('/campanias/cierre/mostrar', [CampaniaCierreController::class, 'mostrarResumen'])
+    ->name('campanias.cierreMostrar');
+
+Route::post('/campanias/{campania}/cerrar', [CampaniaCierreController::class, 'cerrarCampania'])
+    ->name('campanias.cerrar')
+    ->whereNumber('campania');
+
+
 // 2) Luego la resource, con restricción numérica en el id
 Route::resource('campanias', CampaniaController::class)
      ->whereNumber('campania'); // param singular que usa la resource
+    
+// Centro de mensajes por usuario
+Route::get('/centro-mensajes', [CentroMensajesController::class, 'seleccionarUsuario'])
+    ->name('mensajes.centroSeleccion');
+
+Route::get('/centro-mensajes/usuario', [CentroMensajesController::class, 'centroPorUsuario'])
+    ->name('mensajes.centroUsuario');

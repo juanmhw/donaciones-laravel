@@ -39,11 +39,19 @@
                     </td>
                     <td>
                         <a href="{{ route('usuarios.edit', $usuario->usuarioid) }}" class="btn btn-warning btn-sm">✏️ Editar</a>
+
                         <form action="{{ route('usuarios.destroy', $usuario->usuarioid) }}" method="POST" style="display:inline;">
                             @csrf @method('DELETE')
-                            <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este usuario?')">🗑 Eliminar</button>
+                                <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este usuario?')">🗑 Eliminar</button>
                         </form>
+
+                            {{-- Nuevo botón: Estado de cuenta --}}
+                        <a href="{{ route('usuarios.estadoCuenta', $usuario->usuarioid) }}"
+                        class="btn btn-info btn-sm mt-1">
+                            📄 Estado de cuenta
+                        </a>
                     </td>
+
                 </tr>
             @empty
                 <tr><td colspan="8" class="text-center">No hay usuarios registrados</td></tr>

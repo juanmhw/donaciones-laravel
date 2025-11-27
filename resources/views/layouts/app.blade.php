@@ -129,6 +129,13 @@
                                 <p>Campañas</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('campanias.cierreSeleccion') }}"
+                                class="nav-link {{ request()->routeIs('campanias.cierre*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-lock"></i>
+                                <p>Cierre de campaña</p>
+                            </a>
+                        </li>
 
                         <!-- Donaciones (con submenu) -->
                         <li class="nav-item {{ request()->routeIs('donaciones.*') || request()->routeIs('estados.*') ? 'menu-open' : '' }}">
@@ -152,6 +159,14 @@
                                         <p>Estados</p>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('usuarios.estadoCuentaSeleccion') }}"
+                                        class="nav-link {{ request()->routeIs('usuarios.estadoCuentaSeleccion') || request()->routeIs('usuarios.estadoCuenta') ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                                        <p>Estado de cuenta</p>
+                                    </a>
+                                </li>
+
                             </ul>
                         </li>
 
@@ -206,6 +221,13 @@
                                     <a href="{{ route('respuestasmensajes.index') }}" class="nav-link {{ request()->routeIs('respuestasmensajes.*') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Respuestas</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('mensajes.centroSeleccion') }}"
+                                        class="nav-link {{ request()->routeIs('mensajes.centro*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Centro de mensajes</p>
                                     </a>
                                 </li>
                             </ul>

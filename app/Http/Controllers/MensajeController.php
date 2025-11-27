@@ -56,15 +56,8 @@ class MensajeController extends Controller
             'respuestas.usuario:usuarioid,nombre,apellido,email',
         ])->findOrFail($id);
 
-        // 🔹 Transaccional: marcar como leído al abrir
-        if (! $mensaje->leido) {
-            $mensaje->leido = true;   // o 1
-            $mensaje->save();
-        }
-
         return view('mensajes.show', compact('mensaje'));
     }
-
 
     public function edit($id)
     {
