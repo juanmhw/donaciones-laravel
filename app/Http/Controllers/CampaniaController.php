@@ -67,4 +67,15 @@ class CampaniaController extends Controller
         Campania::findOrFail($id)->delete();
         return redirect()->route('campanias.index')->with('success','Campaña eliminada.');
     }
+
+        public function show($id)
+    {
+        $campania = Campania::with([
+            'donaciones',
+            'asignaciones',
+        ])->findOrFail($id);
+
+        return view('campanias.show', compact('campania'));
+    }
+
 }
