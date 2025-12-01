@@ -20,18 +20,44 @@ class AsignacionController extends Controller
     /** LISTADO */
     public function index()
     {
-        $asignaciones = \App\Models\Asignacion::with(['campania','usuario'])
+        $asignaciones = Asignacion::with(['campania','usuario'])
             ->withCount([
                 'detalles as detalles_count',
                 'donacionesPivot as donaciones_count',
             ])
             ->orderByDesc('asignacionid')
-            ->get();
+            ->paginate(10);  // 👈 Paginado
 
-        return view('asignaciones.index', compact('asignaciones'));
+        // Para el formulario de creación dentro del index
+        $campanias = Campania::orderByDesc('campaniaid')->get();
+        $usuarios  = Usuario::orderByDesc('usuarioid')->get();
+
+        return view('asignaciones.index', compact('asignaciones','campanias','usuarios'));
     }
 
 
+    /**
+     * SHOW (detalle completo de una asignación)
+     * Usa la misma vista que "detalles" para que no dupliques Blade.
+     */
+    public function show($id)
+    {
+        $asignacion = Asignacion::with('campania')->findOrFail($id);
+
+        $detalles   = DetallesAsignacion::where('asignacionid',$id)
+                        ->orderByDesc('detalleid')
+                        ->get();
+
+        $donacionesAsignadas = DonacionesAsignacion::where('asignacionid',$id)
+                                ->orderByDesc('donacionasignacionid')
+                                ->get();
+
+        return view('asignaciones.detalles', compact(
+            'asignacion',
+            'detalles',
+            'donacionesAsignadas'
+        ));
+    }
 
     /** FORM CREAR (recurso) */
     public function create()
@@ -47,16 +73,17 @@ class AsignacionController extends Controller
         $data = $request->validate([
             'campaniaid'      => 'required|integer|exists:campanias,campaniaid',
             'descripcion'     => 'required|string|max:255',
-            'monto'           => 'required|numeric|min:0',   // se recalculará con los detalles, pero permitimos inicial
+            'monto'           => 'required|numeric|min:0',   // se recalculará con los detalles
             'fechaasignacion' => 'nullable|date',
             'imagenurl'       => 'nullable|string|max:255',
             'usuarioid'       => 'required|integer|exists:usuarios,usuarioid',
             'comprobante'     => 'nullable|string|max:255',
         ]);
 
-        // Si llega fecha tipo "datetime-local" con "T", normalizamos
         if ($request->filled('fechaasignacion')) {
-            $data['fechaasignacion'] = \Carbon\Carbon::parse($request->input('fechaasignacion'))->format('Y-m-d H:i:s');
+            $data['fechaasignacion'] = \Carbon\Carbon::parse(
+                $request->input('fechaasignacion')
+            )->format('Y-m-d H:i:s');
         }
 
         Asignacion::create($data);
@@ -90,7 +117,9 @@ class AsignacionController extends Controller
         ]);
 
         if ($request->filled('fechaasignacion')) {
-            $data['fechaasignacion'] = \Carbon\Carbon::parse($request->input('fechaasignacion'))->format('Y-m-d H:i:s');
+            $data['fechaasignacion'] = \Carbon\Carbon::parse(
+                $request->input('fechaasignacion')
+            )->format('Y-m-d H:i:s');
         }
 
         $asignacion->update($data);
@@ -105,25 +134,26 @@ class AsignacionController extends Controller
             DB::transaction(function () use ($id) {
                 // devolver saldos de donaciones previamente asignadas a esta asignación
                 $rows = DonacionesAsignacion::where('asignacionid',$id)->get();
+
                 foreach ($rows as $r) {
                     $saldo = SaldosDonacion::where('donacionid',$r->donacionid)->first();
                     if ($saldo) {
-                        $saldo->saldodisponible += $r->montoasignado;
-                        $saldo->montoutilizado  -= $r->montoasignado;
-                        $saldo->ultimaactualizacion = now();
+                        $saldo->saldodisponible      += $r->montoasignado;
+                        $saldo->montoutilizado       -= $r->montoasignado;
+                        $saldo->ultimaactualizacion   = now();
                         $saldo->save();
 
                         // Ajustar estado de la donación
                         $don = Donacion::find($r->donacionid);
                         if ($don) {
                             if ($saldo->saldodisponible >= $saldo->montooriginal) {
-                                // nada usado -> Confirmada (id=2 en tus datos seed)
+                                // nada usado -> Confirmada (id=2)
                                 $don->estadoid = 2;
                             } elseif ($saldo->saldodisponible <= 0) {
                                 // todo usado
                                 $don->estadoid = 4; // Utilizada
                             } else {
-                                $don->estadoid = 3; // Asignada (parcial)
+                                $don->estadoid = 3; // Asignada parcial
                             }
                             $don->save();
                         }
@@ -146,14 +176,14 @@ class AsignacionController extends Controller
      * ============================
      */
 
-    /** VISTA: Detalles de una asignación + formulario para agregar ítems */
+    /**
+     * Alias: detalles() → usa el mismo contenido que show()
+     * por si ya tienes rutas viejas tipo asignaciones/{id}/detalles
+     */
     public function detalles($id)
     {
-        $asignacion = Asignacion::with('campania')->findOrFail($id);
-        $detalles   = DetallesAsignacion::where('asignacionid',$id)->orderByDesc('detalleid')->get();
-        $donacionesAsignadas = DonacionesAsignacion::where('asignacionid',$id)->orderByDesc('donacionasignacionid')->get();
-
-        return view('asignaciones.detalles', compact('asignacion','detalles','donacionesAsignadas'));
+        // reutilizamos la lógica de show
+        return $this->show($id);
     }
 
     /** POST: guardar un detalle (ítem) y recalcular total de la asignación */
@@ -169,22 +199,24 @@ class AsignacionController extends Controller
         ]);
 
         $detalle = new DetallesAsignacion();
-        $detalle->asignacionid = $asignacion->asignacionid;
-        $detalle->concepto     = $data['concepto'];
-        $detalle->cantidad     = $data['cantidad'];
+        $detalle->asignacionid   = $asignacion->asignacionid;
+        $detalle->concepto       = $data['concepto'];
+        $detalle->cantidad       = $data['cantidad'];
         $detalle->preciounitario = $data['preciounitario'];
 
-        $path = $request->file('imagen')->store('detalles', 'public');
-        $detalle->imagenurl = Storage::url($path);   // ✅ más compatible
-
+        // ✅ solo subimos y guardamos ruta si hay archivo
+        if ($request->hasFile('imagen')) {
+            $path = $request->file('imagen')->store('detalles', 'public');
+            $detalle->imagenurl = Storage::url($path);
+        }
 
         DB::transaction(function () use ($detalle, $asignacion) {
             $detalle->save();
 
             // Recalcular total = suma(cantidad*precio)
             $total = DetallesAsignacion::where('asignacionid', $asignacion->asignacionid)
-                    ->select(DB::raw('COALESCE(SUM(cantidad*preciounitario),0) as total'))
-                    ->value('total');
+                ->select(DB::raw('COALESCE(SUM(cantidad*preciounitario),0) as total'))
+                ->value('total');
 
             $asignacion->monto = $total;
             $asignacion->save();
@@ -208,10 +240,10 @@ class AsignacionController extends Controller
             SaldosDonacion::firstOrCreate(
                 ['donacionid' => $don->donacionid],
                 [
-                    'montooriginal'      => $don->monto,
-                    'montoutilizado'     => 0,
-                    'saldodisponible'    => $don->monto,
-                    'ultimaactualizacion'=> now(),
+                    'montooriginal'       => $don->monto,
+                    'montoutilizado'      => 0,
+                    'saldodisponible'     => $don->monto,
+                    'ultimaactualizacion' => now(),
                 ]
             );
         }
@@ -224,7 +256,12 @@ class AsignacionController extends Controller
             ->select('saldosdonaciones.*')
             ->get();
 
-        return view('asignaciones.asignar', compact('asignacion','yaAsignado','faltante','saldos'));
+        return view('asignaciones.asignar', compact(
+            'asignacion',
+            'yaAsignado',
+            'faltante',
+            'saldos'
+        ));
     }
 
     /** POST: guardar asignación de una donación (monto) y actualizar saldos/estados */
@@ -243,7 +280,9 @@ class AsignacionController extends Controller
         }
 
         // Faltante en la asignación
-        $yaAsignado = DonacionesAsignacion::where('asignacionid',$asignacion->asignacionid)->sum('montoasignado');
+        $yaAsignado = DonacionesAsignacion::where('asignacionid',$asignacion->asignacionid)
+            ->sum('montoasignado');
+
         $disponibleAsignacion = max(0, ($asignacion->monto ?? 0) - $yaAsignado);
 
         if ($disponibleAsignacion <= 0) {
@@ -252,7 +291,9 @@ class AsignacionController extends Controller
 
         $maxPermitido = min($disponibleAsignacion, $saldo->saldodisponible);
         if ($data['montoasignado'] > $maxPermitido) {
-            return back()->withErrors('Monto inválido. Máximo permitido: Bs '.number_format($maxPermitido,2,'.',','));
+            return back()->withErrors(
+                'Monto inválido. Máximo permitido: Bs '.number_format($maxPermitido,2,'.',',')
+            );
         }
 
         DB::transaction(function () use ($data, $asignacion, $saldo) {
@@ -265,9 +306,9 @@ class AsignacionController extends Controller
             ]);
 
             // Actualizar saldo
-            $saldo->saldodisponible     -= $data['montoasignado'];
-            $saldo->montoutilizado      += $data['montoasignado'];
-            $saldo->ultimaactualizacion  = now();
+            $saldo->saldodisponible      -= $data['montoasignado'];
+            $saldo->montoutilizado       += $data['montoasignado'];
+            $saldo->ultimaactualizacion   = now();
             $saldo->save();
 
             // Actualizar estado de la donación
@@ -276,7 +317,7 @@ class AsignacionController extends Controller
                 if ($saldo->saldodisponible <= 0) {
                     $don->estadoid = 4; // Utilizada
                 } else {
-                    $don->estadoid = 3; // Asignada (parcial)
+                    $don->estadoid = 3; // Asignada parcial
                 }
                 $don->save();
             }

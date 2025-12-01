@@ -38,7 +38,7 @@
 
             <!-- Right navbar links -->
             <ul class="navbar-nav ml-auto">
-                <!-- Notifications Dropdown Menu -->
+                <!-- Crear nuevo -->
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
                         <i class="fas fa-plus-circle"></i>
@@ -138,8 +138,8 @@
                         </li>
 
                         <!-- Donaciones (con submenu) -->
-                        <li class="nav-item {{ request()->routeIs('donaciones.*') || request()->routeIs('estados.*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->routeIs('donaciones.*') || request()->routeIs('estados.*') ? 'active' : '' }}">
+                        <li class="nav-item {{ request()->routeIs('donaciones.*') || request()->routeIs('estados.*') || request()->routeIs('usuarios.estadoCuenta*') || request()->routeIs('reporte.cierreCaja') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->routeIs('donaciones.*') || request()->routeIs('estados.*') || request()->routeIs('usuarios.estadoCuenta*') || request()->routeIs('reporte.cierreCaja') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-hand-holding-heart"></i>
                                 <p>
                                     Donaciones
@@ -162,11 +162,18 @@
                                 <li class="nav-item">
                                     <a href="{{ route('usuarios.estadoCuentaSeleccion') }}"
                                         class="nav-link {{ request()->routeIs('usuarios.estadoCuentaSeleccion') || request()->routeIs('usuarios.estadoCuenta') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                                        <i class="far fa-circle nav-icon"></i>
                                         <p>Estado de cuenta</p>
                                     </a>
                                 </li>
-
+                                {{-- 🔹 NUEVO: Cierre de caja general --}}
+                                <li class="nav-item">
+                                    <a href="{{ route('reporte.cierreCaja') }}"
+                                       class="nav-link {{ request()->routeIs('reporte.cierreCaja') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Cierre de caja</p>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 
@@ -186,24 +193,12 @@
                                         <p>Asignaciones</p>
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('detallesasignacion.index') }}" class="nav-link {{ request()->routeIs('detallesasignacion.*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Detalles</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('donacionesasignaciones.index') }}" class="nav-link {{ request()->routeIs('donacionesasignaciones.*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Donación → Asignación</p>
-                                    </a>
-                                </li>
                             </ul>
                         </li>
 
                         <!-- Mensajes (con submenu) -->
-                        <li class="nav-item {{ request()->routeIs('mensajes.*') || request()->routeIs('respuestasmensajes.*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->routeIs('mensajes.*') || request()->routeIs('respuestasmensajes.*') ? 'active' : '' }}">
+                        <li class="nav-item {{ request()->routeIs('mensajes.*') || request()->routeIs('respuestasmensajes.*') || request()->routeIs('mensajes.centro*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->routeIs('mensajes.*') || request()->routeIs('respuestasmensajes.*') || request()->routeIs('mensajes.centro*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-envelope"></i>
                                 <p>
                                     Mensajes

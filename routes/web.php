@@ -105,3 +105,22 @@ Route::get('/centro-mensajes', [CentroMensajesController::class, 'seleccionarUsu
 
 Route::get('/centro-mensajes/usuario', [CentroMensajesController::class, 'centroPorUsuario'])
     ->name('mensajes.centroUsuario');
+
+    // Vista general y detalle ya vienen por resource
+Route::resource('asignaciones', AsignacionController::class);
+
+// Nuevas rutas
+Route::get('/asignaciones/{id}/asignar-donacion', 
+    [AsignacionController::class, 'asignarDonacionForm'])
+    ->name('asignaciones.asignarDonacionForm');
+
+Route::post('/asignaciones/{id}/asignar-donacion', 
+    [AsignacionController::class, 'asignarDonacionStore'])
+    ->name('asignaciones.asignarDonacionStore');
+use App\Http\Controllers\ReporteCierreCajaController;
+
+Route::get('/reporte/cierre-caja', [ReporteCierreCajaController::class, 'index'])
+    ->name('reporte.cierreCaja');
+
+Route::get('/reporte/cierre-caja/pdf', [ReporteCierreCajaController::class, 'exportarPDF'])
+    ->name('reporte.cierreCaja.pdf');
