@@ -2,10 +2,23 @@
 
 @section('title', 'Seleccionar donante')
 
+@section('header')
+    <h1>
+        <i class="fas fa-file-invoice-dollar icon-title"></i>
+        Estado de cuenta por usuario
+    </h1>
+    <p class="text-muted mb-0">
+        Selecciona el donante para ver el detalle de sus donaciones, asignaciones y saldos.
+    </p>
+@endsection
+
 @section('content')
-<div class="container mt-4">
-    <h2>Estado de cuenta de donante</h2>
-    <p class="text-muted">Selecciona el usuario para ver su estado de cuenta.</p>
+    @if(session('error'))
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            {{ session('error') }}
+        </div>
+    @endif
 
     <div class="card">
         <div class="card-body">
@@ -20,13 +33,20 @@
                             </option>
                         @endforeach
                     </select>
+                    <small class="form-text text-muted">
+                        Se mostrará el estado de cuenta con todas sus donaciones y movimientos.
+                    </small>
                 </div>
 
-                <button type="submit" class="btn btn-primary mt-3">
-                    Ver estado de cuenta
-                </button>
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ route('usuarios.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i> Volver a usuarios
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search mr-1"></i> Ver estado de cuenta
+                    </button>
+                </div>
             </form>
         </div>
     </div>
-</div>
 @endsection

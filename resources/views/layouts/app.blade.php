@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- AdminLTE -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-    
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <style>
         .brand-link {
             background-color: #0d6efd !important;
@@ -19,6 +19,287 @@
         .sidebar-dark-primary .nav-sidebar>.nav-item>.nav-link.active {
             background-color: #0d6efd !important;
         }
+            /* ===========================
+       CHAT
+       =========================== */
+
+    .chat-container {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .chat-sidebar {
+        flex: 1 1 260px;
+        max-width: 320px;
+    }
+
+    .chat-main {
+        flex: 2 1 480px;
+        min-width: 0;
+    }
+
+    .chat-window {
+        max-height: 480px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .chat-message-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .chat-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #9ca3af;
+        margin-bottom: 0.25rem;
+    }
+
+    .chat-bubble {
+        display: inline-block;
+        padding: 0.6rem 0.9rem;
+        border-radius: 1rem;
+        max-width: 80%;
+        font-size: 0.9rem;
+        position: relative;
+        margin-bottom: 0.25rem;
+    }
+
+    .chat-bubble-left {
+        background-color: #e5e7eb;
+        color: #111827;
+        border-bottom-left-radius: 0.2rem;
+    }
+
+    .chat-bubble-right {
+        background-color: #6366f1;
+        color: #ffffff;
+        border-bottom-right-radius: 0.2rem;
+        margin-left: auto;
+    }
+
+    .chat-meta {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.15rem;
+    }
+
+    .chat-meta span + span::before {
+        content: "•";
+        margin: 0 0.25rem;
+    }
+
+    .chat-asunto {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #4b5563;
+        margin-bottom: 0.15rem;
+    }
+
+    .chat-empty {
+        text-align: center;
+        color: #9ca3af;
+        padding: 2rem 0;
+        font-size: 0.9rem;
+    }
+        /* ===========================
+       SALDOS DONACIONES
+       =========================== */
+
+    .saldo-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .saldo-summary-card {
+        border-radius: 0.75rem;
+        padding: 1rem 1.2rem;
+        color: #111827;
+    }
+
+    .saldo-summary-card h5 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.2rem;
+        opacity: 0.8;
+    }
+
+    .saldo-summary-card .saldo-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .saldo-summary-card.total-original {
+        background: linear-gradient(135deg, #e0f2fe, #eef2ff);
+    }
+
+    .saldo-summary-card.total-utilizado {
+        background: linear-gradient(135deg, #fee2e2, #fef9c3);
+    }
+
+    .saldo-summary-card.total-disponible {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    }
+        /* ===========================
+       DONACIONES
+       =========================== */
+
+    .donaciones-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .donaciones-summary-card {
+        border-radius: 0.75rem;
+        padding: 1rem 1.2rem;
+        color: #111827;
+    }
+
+    .donaciones-summary-card h5 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.2rem;
+        opacity: 0.8;
+    }
+
+    .donaciones-summary-card .summary-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .donaciones-summary-card.total-donado {
+        background: linear-gradient(135deg, #e0f2fe, #eef2ff);
+    }
+
+    .donaciones-summary-card.total-monetaria {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    }
+
+    .donaciones-summary-card.total-especie {
+        background: linear-gradient(135deg, #fee2e2, #fef3c7);
+    }
+        /* ===========================
+       DONACIONES-ASIGNACIONES
+       =========================== */
+
+    .donasig-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .donasig-summary-card {
+        border-radius: 0.75rem;
+        padding: 1rem 1.2rem;
+        color: #111827;
+    }
+
+    .donasig-summary-card h5 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.2rem;
+        opacity: 0.8;
+    }
+
+    .donasig-summary-card .summary-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .donasig-summary-card.total-asignado {
+        background: linear-gradient(135deg, #e0f2fe, #eef2ff);
+    }
+
+    .donasig-summary-card.total-registros {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    }
+        /* ===========================
+       CAMPAÑAS
+       =========================== */
+
+    .campanias-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .campanias-summary-card {
+        border-radius: 0.75rem;
+        padding: 1rem 1.2rem;
+        color: #111827;
+    }
+
+    .campanias-summary-card h5 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.2rem;
+        opacity: 0.8;
+    }
+
+    .campanias-summary-card .summary-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .campanias-summary-card.total-campanias {
+        background: linear-gradient(135deg, #e0f2fe, #eef2ff);
+    }
+
+    .campanias-summary-card.total-activas {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    }
+
+    .campanias-summary-card.total-meta {
+        background: linear-gradient(135deg, #fef3c7, #fee2e2);
+    }
+
+    .campania-badge-activa {
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+    }
+        /* ===========================
+       USUARIOS
+       =========================== */
+
+    .role-chip {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background-color: #e5e7eb;
+        color: #374151;
+        margin: 0 0.15rem 0.15rem 0;
+    }
+
+    .user-avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        background: linear-gradient(135deg, #6366f1, #3b82f6);
+        color: white;
+    }
+
+
+
+
+
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
