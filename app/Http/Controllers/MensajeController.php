@@ -5,96 +5,107 @@ namespace App\Http\Controllers;
 use App\Models\Mensaje;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Conversacion;
+use Illuminate\Support\Facades\DB;
 
 class MensajeController extends Controller
 {
-    public function index()
+public function inbox()
     {
-        $mensajes = Mensaje::with([
-            'remitente:usuarioid,nombre,apellido,email',
-            'destinatario:usuarioid,nombre,apellido,email',
-            'respuestas.usuario:usuarioid,nombre,apellido,email',
-        ])
-        ->orderByDesc('mensajeid')
-        ->paginate(15);
+        $meId = Auth::id();
 
-        return view('mensajes.index', compact('mensajes'));
+        // Conversaciones donde participo
+        $conversaciones = Conversacion::query()
+            ->whereHas('usuarios', fn($q) => $q->where('usuarios.usuarioid', $meId))
+            ->with([
+                'usuarios' => fn($q) => $q->where('usuarios.usuarioid', '!=', $meId),
+                'mensajes' => fn($q) => $q->orderByDesc('fechaenvio')->limit(1),
+            ])
+            ->orderByDesc('updated_at')
+            ->get();
+
+        // Para iniciar chat con cualquiera
+        $usuarios = Usuario::where('usuarioid', '!=', $meId)->orderBy('nombre')->get();
+
+        return view('mensajes.chat.inbox', compact('conversaciones', 'usuarios'));
     }
 
-    public function create()
+    public function conversacion(Usuario $usuario)
     {
-        $usuarios = Usuario::orderBy('nombre')->get(['usuarioid','nombre','apellido','email']);
-        return view('mensajes.create', compact('usuarios'));
+        $meId = Auth::id();
+
+        // Buscar o crear conversación privada (me - usuario)
+        $conv = $this->getOrCreatePrivateConversation($meId, $usuario->usuarioid);
+
+        $mensajes = Mensaje::where('conversacionid', $conv->conversacionid)
+            ->orderBy('fechaenvio')
+            ->with('autor')
+            ->get();
+
+        // actualizar ultimo_leido del usuario actual
+        DB::table('conversacion_usuarios')
+            ->where('conversacionid', $conv->conversacionid)
+            ->where('usuarioid', $meId)
+            ->update(['ultimo_leido' => now()]);
+
+        return view('mensajes.chat.conversacion', compact('usuario', 'mensajes', 'conv'));
     }
 
-    public function store(Request $request)
+    public function enviar(Request $request, Usuario $usuario)
     {
-        $data = $request->validate([
-            'remitenteid'     => 'required|integer|exists:usuarios,usuarioid',
-            'destinatarioid'  => 'nullable|integer|exists:usuarios,usuarioid|different:remitenteid',
-            'asunto'          => 'required|string|max:100',
-            'contenido'       => 'required|string',
-            'fechaenvio'      => 'nullable|date',
-            'leido'           => 'nullable|boolean',
-            'respondido'      => 'nullable|boolean',
+        $meId = Auth::id();
+
+        $request->validate([
+            'asunto'    => 'required|string|max:150',
+            'contenido' => 'required|string|max:5000',
         ]);
 
-        $data['fechaenvio'] = $data['fechaenvio'] ?? now();
-        $data['leido']      = (bool)($data['leido'] ?? false);
-        $data['respondido'] = (bool)($data['respondido'] ?? false);
+        if ($usuario->usuarioid == $meId) {
+            return back()->with('error', 'No puedes enviarte mensajes a ti mismo.');
+        }
 
-        Mensaje::create($data);
+        $conv = $this->getOrCreatePrivateConversation($meId, $usuario->usuarioid);
 
-        return redirect()->route('mensajes.index')->with('success', 'Mensaje creado.');
-    }
-
-    public function show($id)
-    {
-        $mensaje = Mensaje::with([
-            'remitente:usuarioid,nombre,apellido,email',
-            'destinatario:usuarioid,nombre,apellido,email',
-            'respuestas.usuario:usuarioid,nombre,apellido,email',
-        ])->findOrFail($id);
-
-        return view('mensajes.show', compact('mensaje'));
-    }
-
-    public function edit($id)
-    {
-        $mensaje  = Mensaje::findOrFail($id);
-        $usuarios = Usuario::orderBy('nombre')->get(['usuarioid','nombre','apellido','email']);
-
-        return view('mensajes.edit', compact('mensaje','usuarios'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $mensaje = Mensaje::findOrFail($id);
-
-        $data = $request->validate([
-            'remitenteid'     => 'required|integer|exists:usuarios,usuarioid',
-            'destinatarioid'  => 'nullable|integer|exists:usuarios,usuarioid|different:remitenteid',
-            'asunto'          => 'required|string|max:100',
-            'contenido'       => 'required|string',
-            'fechaenvio'      => 'nullable|date',
-            'leido'           => 'nullable|boolean',
-            'respondido'      => 'nullable|boolean',
+        Mensaje::create([
+            'conversacionid' => $conv->conversacionid,
+            'usuarioid'      => $meId,
+            'asunto'         => $request->asunto,
+            'contenido'      => $request->contenido,
+            'fechaenvio'     => now(),
         ]);
 
-        $data['fechaenvio'] = $data['fechaenvio'] ?? $mensaje->fechaenvio;
-        $data['leido']      = (bool)($data['leido'] ?? $mensaje->leido);
-        $data['respondido'] = (bool)($data['respondido'] ?? $mensaje->respondido);
+        // actualizar updated_at de conversación para ordenar inbox
+        $conv->touch();
 
-        $mensaje->update($data);
-
-        return redirect()->route('mensajes.index')->with('success', 'Mensaje actualizado.');
+        return redirect()->route('chat.conversacion', $usuario->usuarioid);
     }
 
-    public function destroy($id)
+    /**
+     * Crea o recupera conversación privada entre 2 usuarios.
+     */
+    private function getOrCreatePrivateConversation(int $u1, int $u2): Conversacion
     {
-        $mensaje = Mensaje::findOrFail($id);
-        $mensaje->delete();
+        $min = min($u1, $u2);
+        $max = max($u1, $u2);
 
-        return redirect()->route('mensajes.index')->with('success', 'Mensaje eliminado.');
+        // Buscamos conversación que tenga exactamente ambos usuarios
+        $conv = Conversacion::where('tipo', 'private')
+            ->whereHas('usuarios', fn($q) => $q->where('usuarios.usuarioid', $min))
+            ->whereHas('usuarios', fn($q) => $q->where('usuarios.usuarioid', $max))
+            ->first();
+
+        if ($conv) return $conv;
+
+        return DB::transaction(function () use ($min, $max) {
+            $conv = Conversacion::create(['tipo' => 'private']);
+
+            DB::table('conversacion_usuarios')->insert([
+                ['conversacionid' => $conv->conversacionid, 'usuarioid' => $min, 'ultimo_leido' => null],
+                ['conversacionid' => $conv->conversacionid, 'usuarioid' => $max, 'ultimo_leido' => null],
+            ]);
+
+            return $conv;
+        });
     }
 }
