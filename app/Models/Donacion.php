@@ -10,8 +10,15 @@ class Donacion extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'usuarioid','campaniaid','monto','tipodonacion','descripcion',
-        'fechadonacion','estadoid','esanonima', // <- CORREGIDO
+        'idexterno',
+        'usuarioid',
+        'campaniaid',
+        'monto',
+        'tipodonacion',
+        'descripcion',
+        'fechadonacion',
+        'estadoid',
+        'esanonima',
     ];
 
     protected $casts = [

@@ -11,33 +11,24 @@ class Mensaje extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'remitenteid',
-        'destinatarioid',
+        'conversacionid',
+        'usuarioid',
         'asunto',
         'contenido',
         'fechaenvio',
-        'leido',
-        'respondido',
     ];
 
     protected $casts = [
-        'leido'       => 'boolean',
-        'respondido'  => 'boolean',
-        'fechaenvio'  => 'datetime',
+        'fechaenvio' => 'datetime',
     ];
 
-    public function remitente()
+    public function conversacion()
     {
-        return $this->belongsTo(Usuario::class, 'remitenteid', 'usuarioid');
+        return $this->belongsTo(Conversacion::class, 'conversacionid', 'conversacionid');
     }
 
-    public function destinatario()
+    public function autor()
     {
-        return $this->belongsTo(Usuario::class, 'destinatarioid', 'usuarioid');
-    }
-
-    public function respuestas()
-    {
-        return $this->hasMany(RespuestaMensaje::class, 'mensajeid', 'mensajeid');
+        return $this->belongsTo(Usuario::class, 'usuarioid', 'usuarioid');
     }
 }

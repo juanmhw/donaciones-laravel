@@ -1,44 +1,89 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Models\Role;
 use Illuminate\Http\Request;
+// CORRECCIÓN: Usamos el modelo de Spatie, NO App\Models\Role
+use Spatie\Permission\Models\Role; 
+use App\Http\Controllers\Controller;
 
 class RoleController extends Controller
 {
-    public function index() {
-        $roles = Role::with('usuariosroles')->get();
+    /**
+     * Mostrar lista de roles
+     */
+    public function index()
+    {
+        $roles = Role::all(); // Usa Spatie
         return view('roles.index', compact('roles'));
     }
 
-    public function create() { return view('roles.create'); }
-
-    public function store(Request $request) {
-        $request->validate([
-            'nombre' => 'required|string|max:50|unique:roles,nombre',
-            'descripcion' => 'nullable|string|max:255',
-        ]);
-        Role::create($request->only(['nombre','descripcion']));
-        return redirect()->route('roles.index')->with('success','Rol creado.');
+    /**
+     * Mostrar formulario de creación
+     */
+    public function create()
+    {
+        return view('roles.create');
     }
 
-    public function edit($id) {
-        $role = Role::findOrFail($id);
+    /**
+     * Guardar nuevo rol
+     */
+    public function store(Request $request)
+    {
+        // Spatie usa 'name' en la BD, pero tu form manda 'nombre'
+        $request->validate([
+            'nombre' => 'required|unique:roles,name', 
+        ]);
+
+        Role::create([
+            'name' => $request->nombre,
+            'guard_name' => 'web',
+            'descripcion' => $request->descripcion // Nuestro campo extra
+        ]);
+
+        return redirect()->route('roles.index')
+            ->with('success', 'Rol creado exitosamente.');
+    }
+
+    /**
+     * Mostrar formulario de edición
+     */
+    public function edit($id)
+    {
+        $role = Role::findById($id); // Helper de Spatie
         return view('roles.edit', compact('role'));
     }
 
-    public function update(Request $request, $id) {
-        $role = Role::findOrFail($id);
+    /**
+     * Actualizar rol
+     */
+    public function update(Request $request, $id)
+    {
+        $role = Role::findById($id);
+
         $request->validate([
-            'nombre' => 'required|string|max:50|unique:roles,nombre,' . $id . ',rolid',
-            'descripcion' => 'nullable|string|max:255',
+            'nombre' => 'required|unique:roles,name,' . $role->id,
         ]);
-        $role->update($request->only(['nombre','descripcion']));
-        return redirect()->route('roles.index')->with('success','Rol actualizado.');
+
+        $role->update([
+            'name' => $request->nombre,
+            'descripcion' => $request->descripcion
+        ]);
+
+        return redirect()->route('roles.index')
+            ->with('success', 'Rol actualizado correctamente.');
     }
 
-    public function destroy($id) {
-        Role::findOrFail($id)->delete();
-        return redirect()->route('roles.index')->with('success','Rol eliminado.');
+    /**
+     * Eliminar rol
+     */
+    public function destroy($id)
+    {
+        $role = Role::findById($id);
+        $role->delete();
+
+        return redirect()->route('roles.index')
+            ->with('success', 'Rol eliminado correctamente.');
     }
 }

@@ -8,9 +8,17 @@ class Campania extends Model
     protected $primaryKey = 'campaniaid';
     public $timestamps = false;
     protected $fillable = [
-        'titulo','descripcion','fechainicio','fechafin',
-        'metarecaudacion','montorecaudado','usuarioidcreador',
-        'activa','imagenurl','fechacreacion'
+        'idexterno',
+        'titulo',
+        'descripcion',
+        'fechainicio',
+        'fechafin',
+        'metarecaudacion',
+        'montorecaudado',
+        'usuarioidcreador',
+        'activa',
+        'imagenurl',
+        'fechacreacion',
     ];
 
     public function creador() {
