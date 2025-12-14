@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title','Cierre de caja')
+@section('title','Reporte Financiero y Cierre de Caja')
 
 @section('header')
 <div class="row mb-2">
     <div class="col-sm-6">
-        <h1 class="m-0">Cierre de caja</h1>
+        <h1 class="m-0 text-dark">Reporte Financiero / Cierre de Caja</h1>
     </div>
     <div class="col-sm-6">
         <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="{{ route('home') }}">Inicio</a></li>
-            <li class="breadcrumb-item active">Cierre de caja</li>
+            <li class="breadcrumb-item active">Reportes</li>
         </ol>
     </div>
 </div>
@@ -21,51 +21,47 @@
 <div class="row">
     <div class="col-12">
 
-        <!-- FILTROS -->
-        <div class="card card-primary card-outline">
+        <div class="card card-primary card-outline shadow-sm">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-filter mr-2"></i>Filtros de búsqueda</h3>
+                <h3 class="card-title"><i class="fas fa-filter mr-2"></i>Filtros de Búsqueda Avanzada</h3>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                         <i class="fas fa-minus"></i>
                     </button>
                 </div>
             </div>
-            <form method="GET">
+            
+            <form method="GET" action="{{ route('reporte.cierreCaja') }}">
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label><i class="fas fa-bullhorn mr-1"></i>Campaña</label>
-                                <select name="campaniaid" class="form-control">
-                                    <option value="">Todas</option>
+                                <label><i class="fas fa-bullhorn mr-1 text-primary"></i>Campaña</label>
+                                <select name="campaniaid" class="form-control select2">
+                                    <option value="">-- Todas las campañas --</option>
                                     @foreach($campanias as $c)
-                                        <option value="{{ $c->campaniaid }}"
-                                            {{ request('campaniaid') == $c->campaniaid ? 'selected' : '' }}>
-                                            {{ $c->titulo }}
+                                        <option value="{{ $c->campaniaid }}" {{ request('campaniaid') == $c->campaniaid ? 'selected' : '' }}>
+                                            {{ Str::limit($c->titulo, 30) }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
 
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label><i class="fas fa-calendar-alt mr-1"></i>Desde</label>
-                                <input type="date" name="desde" class="form-control" value="{{ request('desde') }}">
+                        <div class="col-md-4">
+                            <label><i class="fas fa-calendar-alt mr-1 text-primary"></i>Rango de Fechas</label>
+                            <div class="input-group">
+                                <input type="date" name="desde" class="form-control" placeholder="Desde" value="{{ request('desde') }}">
+                                <div class="input-group-prepend input-group-append">
+                                    <span class="input-group-text"><i class="fas fa-arrow-right"></i></span>
+                                </div>
+                                <input type="date" name="hasta" class="form-control" placeholder="Hasta" value="{{ request('hasta') }}">
                             </div>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
-                                <label><i class="fas fa-calendar-alt mr-1"></i>Hasta</label>
-                                <input type="date" name="hasta" class="form-control" value="{{ request('hasta') }}">
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label><i class="fas fa-info-circle mr-1"></i>Estado</label>
+                                <label><i class="fas fa-info-circle mr-1 text-primary"></i>Estado</label>
                                 <select name="estadoid" class="form-control">
                                     <option value="">Todos</option>
                                     <option value="1" {{ request('estadoid') == 1 ? 'selected' : '' }}>Pendiente</option>
@@ -76,63 +72,115 @@
                                 </select>
                             </div>
                         </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label><i class="fas fa-money-bill-wave mr-1 text-primary"></i>Tipo</label>
+                                <select name="tipodonacion" class="form-control">
+                                    <option value="">Todos los tipos</option>
+                                    @foreach($tiposDonacion as $tipo)
+                                        <option value="{{ $tipo }}" {{ request('tipodonacion') == $tipo ? 'selected' : '' }}>
+                                            {{ ucfirst($tipo) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label><i class="fas fa-user mr-1 text-primary"></i>Buscar Donante</label>
+                                <input type="text" name="donante" class="form-control" 
+                                       placeholder="Nombre o Apellido..." value="{{ request('donante') }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label><i class="fas fa-coins mr-1 text-primary"></i>Rango Montos (Bs)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="min_monto" class="form-control" placeholder="Mín 0.00" value="{{ request('min_monto') }}">
+                                <div class="input-group-prepend input-group-append">
+                                    <span class="input-group-text">-</span>
+                                </div>
+                                <input type="number" step="0.01" name="max_monto" class="form-control" placeholder="Máx" value="{{ request('max_monto') }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label><i class="fas fa-eye-slash mr-1 text-primary"></i>Privacidad</label>
+                                <select name="esanonima" class="form-control">
+                                    <option value="">Todo (Público y Anónimo)</option>
+                                    <option value="0" {{ request('esanonima') === '0' ? 'selected' : '' }}>Solo Públicas</option>
+                                    <option value="1" {{ request('esanonima') === '1' ? 'selected' : '' }}>Solo Anónimas</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card-footer d-flex justify-content-between">
-                    <button class="btn btn-primary">
-                        <i class="fas fa-search mr-1"></i> Aplicar filtros
-                    </button>
-
-                    <div>
-                        <a href="{{ route('reporte.cierreCaja') }}" class="btn btn-secondary mr-2">
-                            <i class="fas fa-eraser mr-1"></i> Limpiar
-                        </a>
-                        <a href="{{ route('reporte.cierreCaja.pdf', request()->query()) }}"
-                           class="btn btn-danger">
-                            <i class="fas fa-file-pdf mr-1"></i> Exportar PDF
-                        </a>
+                <div class="card-footer bg-light border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="submit" class="btn btn-primary shadow-sm px-4">
+                                <i class="fas fa-search mr-1"></i> <strong>Filtrar Resultados</strong>
+                            </button>
+                            <a href="{{ route('reporte.cierreCaja') }}" class="btn btn-default ml-2">
+                                <i class="fas fa-eraser mr-1"></i> Limpiar Filtros
+                            </a>
+                        </div>
+                        
+                        <div>
+                            {{-- AQUÍ ESTÁ LA CLAVE: request()->all() Pasa los filtros al PDF --}}
+                            <a href="{{ route('reporte.cierreCaja.pdf', request()->all()) }}" target="_blank" class="btn btn-danger shadow-sm px-3">
+                                <i class="fas fa-file-pdf mr-1"></i> Exportar PDF
+                            </a>
+                            <a href="{{ route('reporte.cierreCaja.excel', request()->all()) }}" target="_blank" class="btn btn-success shadow-sm ml-2">
+                                <i class="fas fa-file-excel mr-1"></i> Exportar Excel
+                            </a>
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
 
-        <!-- TOTALES GENERALES -->
         <div class="row">
             <div class="col-md-4">
-                <div class="info-box bg-gradient-info">
+                <div class="info-box bg-gradient-info shadow-sm">
                     <span class="info-box-icon"><i class="fas fa-coins"></i></span>
                     <div class="info-box-content">
-                        <span class="info-box-text">Total recaudado</span>
+                        <span class="info-box-text">Total Recaudado (Filtrado)</span>
                         <span class="info-box-number">Bs {{ number_format($totalGeneral, 2) }}</span>
                         <div class="progress">
                             <div class="progress-bar" style="width: 100%"></div>
                         </div>
                         <span class="progress-description">
-                            {{ $donaciones->count() }} {{ $donaciones->count() == 1 ? 'donación' : 'donaciones' }}
+                            {{ $donaciones->count() }} operaciones encontradas
                         </span>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="info-box bg-gradient-success">
+                <div class="info-box bg-gradient-success shadow-sm">
                     <span class="info-box-icon"><i class="fas fa-check-circle"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Confirmadas</span>
                         <span class="info-box-number">Bs {{ number_format($totalConfirmadas, 2) }}</span>
                         <div class="progress">
-                            <div class="progress-bar" style="width: {{ $totalGeneral > 0 ? ($totalConfirmadas/$totalGeneral)*100 : 0 }}%"></div>
+                             <div class="progress-bar" style="width: {{ $totalGeneral > 0 ? ($totalConfirmadas/$totalGeneral)*100 : 0 }}%"></div>
                         </div>
                         <span class="progress-description">
-                            {{ $totalGeneral > 0 ? number_format(($totalConfirmadas/$totalGeneral)*100, 1) : 0 }}% del total
+                            {{ $totalGeneral > 0 ? number_format(($totalConfirmadas/$totalGeneral)*100, 1) : 0 }}% del monto total
                         </span>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="info-box bg-gradient-warning">
+                <div class="info-box bg-gradient-warning shadow-sm">
                     <span class="info-box-icon"><i class="fas fa-hourglass-half"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Pendientes</span>
@@ -141,14 +189,13 @@
                             <div class="progress-bar" style="width: {{ $totalGeneral > 0 ? ($totalPendientes/$totalGeneral)*100 : 0 }}%"></div>
                         </div>
                         <span class="progress-description">
-                            {{ $totalGeneral > 0 ? number_format(($totalPendientes/$totalGeneral)*100, 1) : 0 }}% del total
+                            {{ $totalGeneral > 0 ? number_format(($totalPendientes/$totalGeneral)*100, 1) : 0 }}% del monto total
                         </span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- DONACIONES POR CAMPAÑA -->
         @php
             $donacionesPorCampania = $donaciones->groupBy('campaniaid');
         @endphp
@@ -158,21 +205,19 @@
                 $campania = $donacionesCampania->first()->campania;
                 $totalCampania = $donacionesCampania->sum('monto');
                 $cantidadDonaciones = $donacionesCampania->count();
-                $confirmadas = $donacionesCampania->where('estadoid', 2)->sum('monto');
-                $pendientes = $donacionesCampania->where('estadoid', 1)->sum('monto');
             @endphp
 
-            <div class="card card-outline card-primary">
+            <div class="card card-outline card-primary mb-4 shadow-sm">
                 <div class="card-header">
-                    <h3 class="card-title">
+                    <h3 class="card-title text-primary">
                         <i class="fas fa-bullhorn mr-2"></i>
-                        <strong>{{ $campania->titulo }}</strong>
+                        <strong>{{ $campania ? $campania->titulo : 'Sin Campaña Asignada / General' }}</strong>
                     </h3>
                     <div class="card-tools">
-                        <span class="badge badge-primary mr-2">
-                            {{ $cantidadDonaciones }} {{ $cantidadDonaciones == 1 ? 'donación' : 'donaciones' }}
+                        <span class="badge badge-light border mr-2">
+                            <i class="fas fa-list mr-1"></i> {{ $cantidadDonaciones }} Ops.
                         </span>
-                        <span class="badge badge-info">
+                        <span class="badge badge-primary">
                             Total: Bs {{ number_format($totalCampania, 2) }}
                         </span>
                         <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -181,208 +226,147 @@
                     </div>
                 </div>
 
-                <div class="card-body">
-                    <!-- Mini resumen de la campaña -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="info-box bg-light">
-                                <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Confirmadas</span>
-                                    <span class="info-box-number text-success">Bs {{ number_format($confirmadas, 2) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-box bg-light">
-                                <span class="info-box-icon bg-warning"><i class="fas fa-clock"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Pendientes</span>
-                                    <span class="info-box-number text-warning">Bs {{ number_format($pendientes, 2) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tabla de donaciones -->
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="thead-light">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th style="width: 60px">#ID</th>
+                                    <th style="width: 50px" class="text-center">ID</th>
                                     <th>Donante</th>
-                                    <th style="width: 120px">Monto</th>
-                                    <th style="width: 100px">Tipo</th>
-                                    <th style="width: 110px">Estado</th>
-                                    <th style="width: 150px">Fecha</th>
+                                    <th>Tipo</th>
+                                    <th class="text-right">Monto</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Privacidad</th>
+                                    <th class="text-right">Fecha</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($donacionesCampania as $d)
-                                <!-- Fila principal de donación -->
+                                
                                 <tr>
-                                    <td><span class="badge badge-secondary">{{ $d->donacionid }}</span></td>
+                                    <td class="text-center text-muted text-sm">{{ $d->donacionid }}</td>
                                     <td>
                                         @if($d->esanonima)
                                             <span class="badge badge-secondary">
                                                 <i class="fas fa-user-secret mr-1"></i>Anónimo
                                             </span>
                                         @else
-                                            <i class="fas fa-user mr-1 text-muted"></i>
-                                            {{ optional($d->usuario)->nombre }} {{ optional($d->usuario)->apellido }}
+                                            <div class="font-weight-bold text-dark">
+                                                {{ optional($d->usuario)->nombre }} {{ optional($d->usuario)->apellido }}
+                                            </div>
+                                            <small class="text-muted">{{ optional($d->usuario)->email }}</small>
                                         @endif
                                     </td>
                                     <td>
+                                        <span class="badge badge-light border">{{ ucfirst($d->tipodonacion) }}</span>
+                                    </td>
+                                    <td class="text-right">
                                         <strong class="text-primary">Bs {{ number_format($d->monto, 2) }}</strong>
                                     </td>
-                                    <td>
-                                        <span class="badge badge-info">{{ $d->tipodonacion }}</span>
-                                    </td>
-                                    <td>
+                                    <td class="text-center">
                                         @php
-                                            $estadoBadge = [
+                                            $estadoColor = match($d->estadoid) {
                                                 1 => 'warning',
                                                 2 => 'success',
                                                 3 => 'info',
                                                 4 => 'primary',
-                                                5 => 'danger'
-                                            ];
-                                            $badgeClass = $estadoBadge[$d->estadoid] ?? 'secondary';
+                                                5 => 'danger',
+                                                default => 'secondary'
+                                            };
                                         @endphp
-                                        <span class="badge badge-{{ $badgeClass }}">
-                                            {{ $d->estado->nombre }}
+                                        <span class="badge badge-{{ $estadoColor }} px-2">
+                                            {{ optional($d->estado)->nombre }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <i class="far fa-calendar mr-1 text-muted"></i>
+                                    <td class="text-center">
+                                        @if($d->esanonima)
+                                            <i class="fas fa-eye-slash text-muted" title="Anónimo"></i>
+                                        @else
+                                            <i class="fas fa-eye text-success" title="Público"></i>
+                                        @endif
+                                    </td>
+                                    <td class="text-right text-muted text-sm">
                                         {{ \Carbon\Carbon::parse($d->fechadonacion)->format('d/m/Y H:i') }}
                                     </td>
                                 </tr>
 
-                                <!-- USO DE LA DONACIÓN -->
                                 @if($d->asignacionesPivot->count())
                                 <tr>
-                                    <td colspan="6" class="p-0" style="background-color: #f4f6f9;">
-                                        <div class="p-3">
-                                            <div class="callout callout-info mb-0">
-                                                <h6 class="mb-3">
-                                                    <i class="fas fa-hand-holding-usd mr-2"></i>
-                                                    <strong>Uso de esta donación:</strong>
-                                                </h6>
-
-                                                @foreach($d->asignacionesPivot as $pivot)
-                                                    @php 
-                                                        $asig = $pivot->asignacion; 
-                                                    @endphp
-                                                    
-                                                    <div class="card card-outline card-success mb-3">
-                                                        <div class="card-header py-2">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <div>
-                                                                    <i class="fas fa-tasks mr-2"></i>
-                                                                    <strong>Asignación #{{ $asig->asignacionid }}</strong>
-                                                                    <span class="ml-2 badge badge-success">
-                                                                        Bs {{ number_format($pivot->montoasignado, 2) }}
-                                                                    </span>
-                                                                </div>
-                                                                <small class="text-muted">
-                                                                    <i class="far fa-calendar-alt mr-1"></i>
-                                                                    {{ \Carbon\Carbon::parse($asig->fechaasignacion)->format('d/m/Y') }}
-                                                                </small>
+                                    <td colspan="7" class="p-0 bg-light">
+                                        <div class="p-3 border-left border-info ml-4 mr-2 my-2 bg-white shadow-sm rounded">
+                                            <h6 class="text-info mb-2 text-sm font-weight-bold">
+                                                <i class="fas fa-share-square mr-1"></i> Distribución de fondos (Uso de la donación):
+                                            </h6>
+                                            
+                                            @foreach($d->asignacionesPivot as $pivot)
+                                                @php $asig = $pivot->asignacion; @endphp
+                                                
+                                                <div class="card card-outline card-success mb-2 collapsed-card">
+                                                    <div class="card-header py-1 px-3">
+                                                        <div class="d-flex justify-content-between align-items-center w-100">
+                                                            <span class="text-sm">
+                                                                <strong>Asignación #{{ $asig->asignacionid }}:</strong>
+                                                                {{ Str::limit($asig->descripcion, 60) }}
+                                                            </span>
+                                                            <div>
+                                                                <span class="badge badge-success mr-2">
+                                                                    Bs {{ number_format($pivot->montoasignado, 2) }}
+                                                                </span>
+                                                                <button type="button" class="btn btn-tool btn-xs" data-card-widget="collapse">
+                                                                    <i class="fas fa-plus"></i> Detalles
+                                                                </button>
                                                             </div>
-                                                        </div>
-                                                        
-                                                        <div class="card-body py-2">
-                                                            @if($asig->descripcion)
-                                                            <p class="mb-2">
-                                                                <i class="fas fa-info-circle mr-1 text-info"></i>
-                                                                <strong>Descripción:</strong> {{ $asig->descripcion }}
-                                                            </p>
-                                                            @endif
-
-                                                            @if($asig->detalles->count())
-                                                            <div class="mt-2">
-                                                                <strong class="text-muted d-block mb-2">
-                                                                    <i class="fas fa-list mr-1"></i>Detalle de gastos:
-                                                                </strong>
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-sm table-striped mb-0">
-                                                                        <thead class="bg-light">
-                                                                            <tr>
-                                                                                <th>Concepto</th>
-                                                                                <th style="width: 80px" class="text-center">Cantidad</th>
-                                                                                <th style="width: 100px" class="text-right">P. Unitario</th>
-                                                                                <th style="width: 100px" class="text-right">Subtotal</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach($asig->detalles as $det)
-                                                                            <tr>
-                                                                                <td>{{ $det->concepto }}</td>
-                                                                                <td class="text-center">
-                                                                                    <span class="badge badge-light">{{ $det->cantidad }}</span>
-                                                                                </td>
-                                                                                <td class="text-right">
-                                                                                    Bs {{ number_format($det->preciounitario, 2) }}
-                                                                                </td>
-                                                                                <td class="text-right">
-                                                                                    <strong class="text-success">
-                                                                                        Bs {{ number_format($det->cantidad * $det->preciounitario, 2) }}
-                                                                                    </strong>
-                                                                                </td>
-                                                                            </tr>
-                                                                            @endforeach
-                                                                        </tbody>
-                                                                        <tfoot class="bg-light">
-                                                                            <tr>
-                                                                                <th colspan="3" class="text-right">Total:</th>
-                                                                                <th class="text-right text-success">
-                                                                                    Bs {{ number_format($asig->detalles->sum(function($d) { 
-                                                                                        return $d->cantidad * $d->preciounitario; 
-                                                                                    }), 2) }}
-                                                                                </th>
-                                                                            </tr>
-                                                                        </tfoot>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                            @else
-                                                            <div class="alert alert-light mb-0 py-2">
-                                                                <i class="fas fa-info-circle mr-1"></i>
-                                                                <small>Sin detalles de gastos registrados.</small>
-                                                            </div>
-                                                            @endif
                                                         </div>
                                                     </div>
-                                                @endforeach
-                                            </div>
+                                                    <div class="card-body p-2 bg-light">
+                                                        @if($asig->detalles->count())
+                                                            <table class="table table-sm table-striped mb-0 text-sm">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Concepto</th>
+                                                                        <th class="text-center">Cant.</th>
+                                                                        <th class="text-right">Unitario</th>
+                                                                        <th class="text-right">Total</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach($asig->detalles as $det)
+                                                                    <tr>
+                                                                        <td>{{ $det->concepto }}</td>
+                                                                        <td class="text-center">{{ $det->cantidad }}</td>
+                                                                        <td class="text-right">{{ number_format($det->preciounitario, 2) }}</td>
+                                                                        <td class="text-right font-weight-bold">{{ number_format($det->cantidad * $det->preciounitario, 2) }}</td>
+                                                                    </tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        @else
+                                                            <small class="text-muted font-italic">Sin desglose de items registrado.</small>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </td>
                                 </tr>
                                 @endif
                                 @endforeach
                             </tbody>
-                            <tfoot class="bg-light">
-                                <tr>
-                                    <th colspan="2" class="text-right">Subtotal de campaña:</th>
-                                    <th colspan="4">
-                                        <span class="text-primary">Bs {{ number_format($totalCampania, 2) }}</span>
-                                        <span class="text-muted ml-2">({{ $cantidadDonaciones }} {{ $cantidadDonaciones == 1 ? 'donación' : 'donaciones' }})</span>
-                                    </th>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
                 </div>
             </div>
 
         @empty
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="text-center py-5">
-                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                        <h4 class="text-muted">No hay donaciones para mostrar</h4>
-                        <p class="text-muted">No se encontraron donaciones con los filtros seleccionados.</p>
+                        <i class="fas fa-filter fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No se encontraron resultados</h4>
+                        <p class="text-muted">Intenta ajustar los filtros de búsqueda para ver información.</p>
+                        <a href="{{ route('reporte.cierreCaja') }}" class="btn btn-outline-primary btn-sm mt-2">
+                            Limpiar Filtros
+                        </a>
                     </div>
                 </div>
             </div>
