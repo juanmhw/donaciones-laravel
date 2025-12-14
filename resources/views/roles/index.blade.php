@@ -21,8 +21,9 @@
     @endif
 
     @php
+        // Spatie usa 'users' para la relación con usuarios
         $totalRoles        = $roles->count();
-        $totalAsignaciones = $roles->sum(fn($r) => $r->usuariosroles->count());
+        $totalAsignaciones = $roles->sum(fn($r) => $r->users->count());
     @endphp
 
     {{-- Resumen --}}
@@ -73,25 +74,30 @@
                 <tbody>
                     @forelse($roles as $rol)
                         <tr>
-                            <td>{{ $rol->rolid }}</td>
+                            {{-- CAMBIO: Spatie usa 'id' --}}
+                            <td>{{ $rol->id }}</td>
                             <td>
-                                <span class="role-chip">{{ $rol->nombre }}</span>
+                                {{-- CAMBIO: Spatie usa 'name' --}}
+                                <span class="role-chip">{{ $rol->name }}</span>
                             </td>
                             <td>
+                                {{-- Este campo lo agregamos manual, así que se llama descripcion --}}
                                 {{ $rol->descripcion ?? '—' }}
                             </td>
                             <td class="text-center">
                                 <span class="badge badge-info">
-                                    {{ $rol->usuariosroles->count() }}
+                                    {{-- CAMBIO: Relación 'users' de Spatie --}}
+                                    {{ $rol->users->count() }}
                                 </span>
                             </td>
                             <td class="text-right">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('roles.edit', $rol->rolid) }}"
+                                    <a href="{{ route('roles.edit', $rol->id) }}"
                                        class="btn btn-outline-primary" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('roles.destroy', $rol->rolid) }}"
+                                    {{-- CAMBIO: Spatie usa 'id' para borrar --}}
+                                    <form action="{{ route('roles.destroy', $rol->id) }}"
                                           method="POST"
                                           onsubmit="return confirm('¿Eliminar este rol?');">
                                         @csrf

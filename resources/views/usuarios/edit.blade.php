@@ -13,10 +13,6 @@
 @endsection
 
 @section('content')
-    @php
-        $rolesActuales = $usuario->roles->pluck('rolid')->toArray();
-    @endphp
-
     <div class="card">
         <div class="card-body">
             <form action="{{ route('usuarios.update', $usuario->usuarioid) }}" method="POST">
@@ -36,8 +32,11 @@
                         <div class="form-group">
                             <label>Contraseña</label>
                             <input type="text" name="contrasena" class="form-control"
-                                   value="{{ old('contrasena', $usuario->contrasena) }}" required>
+                                   value="{{ old('contrasena') }}" placeholder="Dejar en blanco para mantener la actual">
                             @error('contrasena') <small class="text-danger">{{ $message }}</small> @enderror
+                            <small class="form-text text-muted">
+                                Solo escribe aquí si deseas cambiar la contraseña.
+                            </small>
                         </div>
 
                         <div class="form-group">
@@ -74,13 +73,12 @@
                         <div class="form-group">
                             <label>Fecha de registro (opcional)</label>
                             <input type="datetime-local" name="fecharegistro" class="form-control"
-                                   value="{{ old('fecharegistro', $usuario->fecharegistro
-                                        ? \Carbon\Carbon::parse($usuario->fecharegistro)->format('Y-m-d\TH:i')
-                                        : '') }}">
+                                   value="{{ old('fecharegistro', $usuario->fecharegistro ? \Carbon\Carbon::parse($usuario->fecharegistro)->format('Y-m-d\TH:i') : '') }}">
                             @error('fecharegistro') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
                         <div class="form-group form-check mt-2">
+                            <input type="hidden" name="activo" value="0">
                             <input class="form-check-input" type="checkbox" name="activo" value="1"
                                    id="activoEditCheck" {{ old('activo', $usuario->activo) ? 'checked' : '' }}>
                             <label class="form-check-label" for="activoEditCheck">
@@ -91,22 +89,20 @@
                         <div class="form-group mt-3">
                             <label>Roles</label>
                             <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;">
-                                @foreach($roles as $rol)
+                                @foreach($roles as $rolName => $rolLabel)
                                     @php
-                                        $checked = in_array($rol->rolid, old('roles', $rolesActuales ?? []));
+                                        // $userRoles viene del controlador como un array ['admin' => 'admin']
+                                        $checked = in_array($rolName, old('roles', array_keys($userRoles ?? [])));
                                     @endphp
                                     <div class="form-check">
                                         <input class="form-check-input"
                                                type="checkbox"
                                                name="roles[]"
-                                               value="{{ $rol->rolid }}"
-                                               id="rol_{{ $rol->rolid }}"
+                                               value="{{ $rolName }}"
+                                               id="rol_{{ $rolName }}"
                                                {{ $checked ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="rol_{{ $rol->rolid }}">
-                                            {{ $rol->nombre }}
-                                            @if($rol->descripcion)
-                                                <small class="text-muted">— {{ $rol->descripcion }}</small>
-                                            @endif
+                                        <label class="form-check-label text-capitalize" for="rol_{{ $rolName }}">
+                                            {{ $rolLabel }}
                                         </label>
                                     </div>
                                 @endforeach

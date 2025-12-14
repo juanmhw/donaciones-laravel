@@ -72,7 +72,7 @@
                     @forelse($usuarios as $usuario)
                         <tr>
                             <td>
-                                <div class="user-avatar-circle">
+                                <div class="user-avatar-circle bg-info text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; font-weight: bold;">
                                     {{ strtoupper(substr($usuario->nombre,0,1)) }}{{ strtoupper(substr($usuario->apellido,0,1)) }}
                                 </div>
                             </td>
@@ -82,10 +82,11 @@
                             <td>{{ $usuario->email }}</td>
                             <td>{{ $usuario->telefono ?? '—' }}</td>
                             <td>
+                                {{-- Iteramos los roles de Spatie --}}
                                 @forelse($usuario->roles as $rol)
-                                    <span class="role-chip">{{ $rol->nombre }}</span>
+                                    <span class="badge badge-info text-capitalize">{{ $rol->name }}</span>
                                 @empty
-                                    <span class="text-muted">Sin rol</span>
+                                    <span class="text-muted text-sm">Sin rol</span>
                                 @endforelse
                             </td>
                             <td>
@@ -95,14 +96,17 @@
                                     <span class="badge badge-secondary">Inactivo</span>
                                 @endif
                             </td>
-                            <td>{{ $usuario->fecharegistro ?? '—' }}</td>
+                            <td>
+                                {{ $usuario->fecharegistro ? \Carbon\Carbon::parse($usuario->fecharegistro)->format('d/m/Y') : '—' }}
+                            </td>
                             <td class="text-right">
                                 <div class="btn-group btn-group-sm" role="group">
-                                    {{-- Estado de cuenta del usuario --}}
-                                    <a href="{{ route('usuarios.estadoCuenta', $usuario->usuarioid) }}"
+                                    {{-- Estado de cuenta --}}
+                                    {{-- Verifica si tienes definida esta ruta en web.php, si no, coméntala --}}
+                                    {{-- <a href="{{ route('usuarios.estadoCuenta', $usuario->usuarioid) }}"
                                        class="btn btn-outline-info" title="Estado de cuenta">
                                         <i class="fas fa-file-invoice-dollar"></i>
-                                    </a>
+                                    </a> --}}
 
                                     <a href="{{ route('usuarios.edit', $usuario->usuarioid) }}"
                                        class="btn btn-outline-primary" title="Editar">
@@ -111,7 +115,8 @@
 
                                     <form action="{{ route('usuarios.destroy', $usuario->usuarioid) }}"
                                           method="POST"
-                                          onsubmit="return confirm('¿Eliminar este usuario?');">
+                                          onsubmit="return confirm('¿Eliminar este usuario?');"
+                                          style="display: inline-block;">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-outline-danger" title="Eliminar">

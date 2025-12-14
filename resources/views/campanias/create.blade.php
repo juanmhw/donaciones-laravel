@@ -22,14 +22,14 @@
                     {{-- Columna izquierda --}}
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Título</label>
+                            <label>Título <span class="text-danger">*</span></label>
                             <input type="text" name="titulo" class="form-control"
                                    value="{{ old('titulo') }}" required>
                             @error('titulo') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
                         <div class="form-group">
-                            <label>Descripción</label>
+                            <label>Descripción <span class="text-danger">*</span></label>
                             <textarea name="descripcion" rows="4" class="form-control" required>{{ old('descripcion') }}</textarea>
                             @error('descripcion') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
@@ -40,7 +40,7 @@
                                    value="{{ old('imagenurl') }}" placeholder="https://...">
                             @error('imagenurl') <small class="text-danger">{{ $message }}</small> @enderror
                             <small class="form-text text-muted">
-                                Puedes guardar aquí la URL de una imagen representativa de la campaña.
+                                URL de una imagen representativa para la campaña.
                             </small>
                         </div>
                     </div>
@@ -48,7 +48,7 @@
                     {{-- Columna derecha --}}
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Fecha de inicio</label>
+                            <label>Fecha de inicio <span class="text-danger">*</span></label>
                             <input type="date" name="fechainicio" class="form-control"
                                    value="{{ old('fechainicio') }}" required>
                             @error('fechainicio') <small class="text-danger">{{ $message }}</small> @enderror
@@ -62,34 +62,20 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Meta de recaudación (Bs)</label>
+                            <label>Meta de recaudación (Bs) <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" name="metarecaudacion" class="form-control"
                                    value="{{ old('metarecaudacion') }}" required>
                             @error('metarecaudacion') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
                         <div class="form-group">
-                            <label>Monto recaudado actual (Bs)</label>
+                            <label>Monto recaudado inicial (Bs)</label>
                             <input type="number" step="0.01" name="montorecaudado" class="form-control"
                                    value="{{ old('montorecaudado', 0) }}">
                             @error('montorecaudado') <small class="text-danger">{{ $message }}</small> @enderror
                             <small class="form-text text-muted">
-                                Puedes dejarlo en 0 y se irá actualizando con las donaciones.
+                                Puedes dejarlo en 0 y se actualizará con las donaciones.
                             </small>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Creador de la campaña</label>
-                            <select name="usuarioidcreador" class="form-control" required>
-                                <option value="">Seleccione un usuario...</option>
-                                @foreach($usuarios as $u)
-                                    <option value="{{ $u->usuarioid }}"
-                                        {{ old('usuarioidcreador') == $u->usuarioid ? 'selected' : '' }}>
-                                        {{ $u->nombre }} {{ $u->apellido }} — {{ $u->email }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('usuarioidcreador') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
                         <div class="form-group">

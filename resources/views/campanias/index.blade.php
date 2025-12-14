@@ -126,7 +126,7 @@
                                     <span class="badge badge-success campania-badge-activa">Activa</span>
                                 @else
                                     <span class="badge badge-secondary campania-badge-activa">Inactiva</span>
-                                @endif>
+                                @endif
                             </td>
                             <td>
                                 {{ $creador->nombre ?? '—' }} {{ $creador->apellido ?? '' }}<br>
@@ -134,7 +134,6 @@
                             </td>
                             <td class="text-right">
                                 <div class="btn-group btn-group-sm">
-                                    {{-- si tienes show, lo puedes usar aquí --}}
                                     {{-- <a href="{{ route('campanias.show', $campania->campaniaid) }}" class="btn btn-outline-secondary">
                                         <i class="fas fa-eye"></i>
                                     </a> --}}

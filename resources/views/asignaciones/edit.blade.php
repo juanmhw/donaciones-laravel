@@ -40,7 +40,7 @@
                     {{-- Campaña --}}
                     <div class="form-group">
                         <label for="campaniaid">Campaña <span class="text-danger">*</span></label>
-                        <select name="campaniaid" id="campaniaid" class="form-control @error('campaniaid') is-invalid @enderror" required>
+                        <select name="campaniaid" id="campaniaid" class="form-control select2 @error('campaniaid') is-invalid @enderror" required>
                             <option value="">-- Seleccione una campaña --</option>
                             @foreach($campanias as $c)
                                 <option value="{{ $c->campaniaid }}"
@@ -72,9 +72,8 @@
                                     <input type="number" step="0.01" name="monto" id="monto"
                                            class="form-control @error('monto') is-invalid @enderror"
                                            value="{{ old('monto', $asignacion->monto) }}" required>
-                                    @error('monto') <span class="invalid-feedback">{{ $message }}</span> @enderror
                                 </div>
-                                <small class="text-muted">Este total también se recalcula al agregar ítems.</small>
+                                @error('monto') <span class="invalid-feedback d-block">{{ $message }}</span> @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -92,44 +91,31 @@
                         </div>
                     </div>
 
-                    {{-- Imagen URL y Usuario --}}
+                    {{-- Comprobante e Imagen --}}
                     <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="comprobante">Comprobante</label>
+                                <input type="text" name="comprobante" id="comprobante"
+                                       class="form-control @error('comprobante') is-invalid @enderror"
+                                       value="{{ old('comprobante', $asignacion->comprobante) }}"
+                                       placeholder="Número o referencia">
+                                @error('comprobante') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="imagenurl">URL de Imagen</label>
                                 <input type="url" name="imagenurl" id="imagenurl"
                                        class="form-control @error('imagenurl') is-invalid @enderror"
-                                       value="{{ old('imagenurl', $asignacion->imagenurl) }}"
-                                       placeholder="https://ejemplo.com/imagen.jpg">
+                                       value="{{ old('imagenurl', $asignacion->imagenurl) }}">
                                 @error('imagenurl') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="usuarioid">Usuario Responsable <span class="text-danger">*</span></label>
-                                <select name="usuarioid" id="usuarioid" class="form-control @error('usuarioid') is-invalid @enderror" required>
-                                    <option value="">-- Seleccione un usuario --</option>
-                                    @foreach($usuarios as $u)
-                                        <option value="{{ $u->usuarioid }}"
-                                            @selected(old('usuarioid', $asignacion->usuarioid) == $u->usuarioid)>
-                                            {{ $u->email }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('usuarioid') <span class="invalid-feedback">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
                     </div>
-
-                    {{-- Comprobante --}}
-                    <div class="form-group">
-                        <label for="comprobante">Comprobante</label>
-                        <input type="text" name="comprobante" id="comprobante"
-                               class="form-control @error('comprobante') is-invalid @enderror"
-                               value="{{ old('comprobante', $asignacion->comprobante) }}"
-                               placeholder="Número o referencia del comprobante">
-                        @error('comprobante') <span class="invalid-feedback">{{ $message }}</span> @enderror
-                    </div>
+                    
+                    {{-- Input oculto de usuario para mantenerlo si no se cambia (aunque el controlador no lo pide en update normalmente, es bueno tenerlo presente si cambiaras la lógica) --}}
+                    <input type="hidden" name="usuarioid" value="{{ $asignacion->usuarioid }}">
 
                 </div>
 
@@ -146,3 +132,11 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({ theme: 'bootstrap4' });
+    });
+</script>
+@endpush

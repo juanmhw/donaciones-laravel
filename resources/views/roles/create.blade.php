@@ -24,7 +24,7 @@
                            value="{{ old('nombre') }}" required>
                     @error('nombre') <small class="text-danger">{{ $message }}</small> @enderror
                     <small class="form-text text-muted">
-                        Ejemplos: Administrador, Recaudador, Contador, Voluntario, etc.
+                        Ejemplos: Administrador, Donante, Voluntario (Se guardará como 'name' en la BD).
                     </small>
                 </div>
 

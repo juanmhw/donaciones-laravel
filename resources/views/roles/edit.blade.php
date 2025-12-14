@@ -15,14 +15,16 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('roles.update', $role->rolid) }}" method="POST">
+            {{-- CAMBIO: Usamos $role->id --}}
+            <form action="{{ route('roles.update', $role->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 
                 <div class="form-group">
                     <label>Nombre del rol</label>
+                    {{-- CAMBIO: Mostramos $role->name (Spatie) pero el input se llama 'nombre' para el controlador --}}
                     <input type="text" name="nombre" class="form-control"
-                           value="{{ old('nombre', $role->nombre) }}" required>
+                           value="{{ old('nombre', $role->name) }}" required>
                     @error('nombre') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 

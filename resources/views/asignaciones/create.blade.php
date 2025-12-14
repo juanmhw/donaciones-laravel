@@ -29,28 +29,32 @@
                     @csrf
                     <div class="card-body">
                         
-                        {{-- Campaña --}}
-                        <div class="form-group">
-                            <label for="campaniaid">
-                                Campaña <span class="text-danger">*</span>
-                            </label>
-                            <select name="campaniaid" id="campaniaid" class="form-control @error('campaniaid') is-invalid @enderror" required>
-                                <option value="">-- Seleccione una campaña --</option>
-                                @foreach($campanias as $c)
-                                    <option value="{{ $c->campaniaid }}" @selected(old('campaniaid') == $c->campaniaid)>
-                                        {{ $c->titulo }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('campaniaid')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
+                        {{-- FILA 1: Campaña --}}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="campaniaid">
+                                        <i class="fas fa-bullhorn"></i> Campaña <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="campaniaid" id="campaniaid" class="form-control select2" required>
+                                        <option value="">-- Seleccione una campaña --</option>
+                                        @foreach($campanias as $c)
+                                            <option value="{{ $c->campaniaid }}" @selected(old('campaniaid') == $c->campaniaid)>
+                                                #{{ $c->campaniaid }} - {{ $c->titulo }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('campaniaid')
+                                        <span class="invalid-feedback d-block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
 
-                        {{-- Descripción --}}
+                        {{-- FILA 2: Descripción --}}
                         <div class="form-group">
                             <label for="descripcion">
-                                Descripción <span class="text-danger">*</span>
+                                <i class="fas fa-align-left"></i> Descripción <span class="text-danger">*</span>
                             </label>
                             <input type="text" 
                                    name="descripcion" 
@@ -64,12 +68,12 @@
                             @enderror
                         </div>
 
-                        {{-- Monto y Fecha --}}
+                        {{-- FILA 3: Monto y Fecha --}}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="monto">
-                                        Monto <span class="text-danger">*</span>
+                                        <i class="fas fa-money-bill-wave"></i> Monto Estimado (Bs) <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -83,15 +87,20 @@
                                                value="{{ old('monto') }}" 
                                                placeholder="0.00"
                                                required>
-                                        @error('monto')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
                                     </div>
+                                    @error('monto')
+                                        <span class="invalid-feedback d-block">{{ $message }}</span>
+                                    @enderror
+                                    <small class="form-text text-muted">
+                                        Este monto se ajustará automáticamente al agregar detalles.
+                                    </small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="fechaasignacion">Fecha de Asignación</label>
+                                    <label for="fechaasignacion">
+                                        <i class="fas fa-calendar-alt"></i> Fecha de Asignación
+                                    </label>
                                     <input type="datetime-local" 
                                            name="fechaasignacion" 
                                            id="fechaasignacion" 
@@ -104,61 +113,45 @@
                             </div>
                         </div>
 
-                        {{-- Imagen URL y Usuario --}}
+                        {{-- FILA 4: Comprobante e Imagen --}}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="imagenurl">URL de Imagen</label>
+                                    <label for="comprobante">
+                                        <i class="fas fa-receipt"></i> Comprobante / Referencia
+                                    </label>
+                                    <input type="text" 
+                                           name="comprobante" 
+                                           id="comprobante" 
+                                           class="form-control @error('comprobante') is-invalid @enderror" 
+                                           value="{{ old('comprobante') }}"
+                                           placeholder="Ej: Factura #1234">
+                                    @error('comprobante')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="imagenurl">URL de Imagen (Opcional)</label>
                                     <input type="url" 
                                            name="imagenurl" 
                                            id="imagenurl" 
                                            class="form-control @error('imagenurl') is-invalid @enderror" 
                                            value="{{ old('imagenurl') }}"
-                                           placeholder="https://ejemplo.com/imagen.jpg">
+                                           placeholder="https://...">
                                     @error('imagenurl')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="usuarioid">
-                                        Usuario Responsable <span class="text-danger">*</span>
-                                    </label>
-                                    <select name="usuarioid" id="usuarioid" class="form-control @error('usuarioid') is-invalid @enderror" required>
-                                        <option value="">-- Seleccione un usuario --</option>
-                                        @foreach($usuarios as $u)
-                                            <option value="{{ $u->usuarioid }}" @selected(old('usuarioid') == $u->usuarioid)>
-                                                {{ $u->email }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('usuarioid')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Comprobante --}}
-                        <div class="form-group">
-                            <label for="comprobante">Comprobante</label>
-                            <input type="text" 
-                                   name="comprobante" 
-                                   id="comprobante" 
-                                   class="form-control @error('comprobante') is-invalid @enderror" 
-                                   value="{{ old('comprobante') }}"
-                                   placeholder="Número o referencia del comprobante">
-                            @error('comprobante')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
                         </div>
 
                     </div>
 
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Guardar Asignación
+                            <i class="fas fa-save"></i> Crear Asignación
                         </button>
                         <a href="{{ route('asignaciones.index') }}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Cancelar
@@ -169,3 +162,14 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            placeholder: 'Seleccione una opción'
+        });
+    });
+</script>
+@endpush

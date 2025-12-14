@@ -34,7 +34,7 @@
                                    value="{{ old('contrasena') }}" required>
                             @error('contrasena') <small class="text-danger">{{ $message }}</small> @enderror
                             <small class="form-text text-muted">
-                                (Se guarda tal como lo ingreses; si luego usas hashing, aquí se ajusta el backend).
+                                (Se encriptará automáticamente al guardar).
                             </small>
                         </div>
 
@@ -67,19 +67,18 @@
                             <input type="text" name="imagenurl" class="form-control"
                                    value="{{ old('imagenurl') }}">
                             @error('imagenurl') <small class="text-danger">{{ $message }}</small> @enderror
-                            <small class="form-text text-muted">
-                                Puedes guardar aquí un enlace a la foto del usuario.
-                            </small>
                         </div>
 
                         <div class="form-group">
                             <label>Fecha de registro (opcional)</label>
                             <input type="datetime-local" name="fecharegistro" class="form-control"
-                                   value="{{ old('fecharegistro') }}">
+                                   value="{{ old('fecharegistro', now()->format('Y-m-d\TH:i')) }}">
                             @error('fecharegistro') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
                         <div class="form-group form-check mt-2">
+                            {{-- Enviamos un valor hidden 0 por si se desmarca el checkbox --}}
+                            <input type="hidden" name="activo" value="0">
                             <input class="form-check-input" type="checkbox" name="activo" value="1"
                                    id="activoCheck" {{ old('activo', true) ? 'checked' : '' }}>
                             <label class="form-check-label" for="activoCheck">
@@ -89,27 +88,22 @@
 
                         <div class="form-group mt-3">
                             <label>Roles</label>
-                            <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;">
-                                @foreach($roles as $rol)
-                                    <div class="form-check">
-                                        <input class="form-check-input"
-                                               type="checkbox"
-                                               name="roles[]"
-                                               value="{{ $rol->rolid }}"
-                                               id="rol_{{ $rol->rolid }}"
-                                               {{ (collect(old('roles'))->contains($rol->rolid)) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="rol_{{ $rol->rolid }}">
-                                            {{ $rol->nombre }}
-                                            @if($rol->descripcion)
-                                                <small class="text-muted">— {{ $rol->descripcion }}</small>
-                                            @endif
-                                        </label>
-                                    </div>
-                                @endforeach
+                           <label>Roles:</label>
+                            @foreach($roles as $rolName)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                        name="roles[]" 
+                                        value="{{ $rolName }}" 
+                                        id="role_{{ $rolName }}">
+                                    <label class="form-check-label" for="role_{{ $rolName }}">
+                                        {{ $rolName }}
+                                    </label>
+                                </div>
+                            @endforeach
                             </div>
                             @error('roles') <small class="text-danger d-block">{{ $message }}</small> @enderror
                             <small class="form-text text-muted">
-                                Puedes asignar uno o varios roles al usuario.
+                                Puedes asignar uno o varios roles.
                             </small>
                         </div>
                     </div>
