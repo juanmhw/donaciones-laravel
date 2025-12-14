@@ -11,7 +11,7 @@ class CampaniaCierreController extends Controller
     // ➊ Pantalla para seleccionar campaña
     public function seleccionarCampania()
     {
-        // Puedes filtrar solo activas si quieres
+        // Si quieres, puedes filtrar solo activas
         $campanias = Campania::orderBy('activa', 'desc')
             ->orderBy('fechainicio', 'desc')
             ->get();
@@ -28,7 +28,7 @@ class CampaniaCierreController extends Controller
 
         $campania = Campania::findOrFail($request->campaniaid);
 
-        // Traemos todas las donaciones de la campaña con relaciones necesarias
+        // Traemos todas las donaciones de la campaña con sus relaciones
         $donaciones = Donacion::with([
                 'usuario',
                 'estado',
@@ -38,7 +38,7 @@ class CampaniaCierreController extends Controller
             ->where('campaniaid', $campania->campaniaid)
             ->get();
 
-        // Totales generales
+        // ======= TOTALES GENERALES (como ya tenías) =======
         $totalDonado = $donaciones->sum('monto');
 
         $totalAsignado = $donaciones->sum(function ($d) {
@@ -51,10 +51,32 @@ class CampaniaCierreController extends Controller
             return optional($d->saldo)->saldodisponible ?? 0;
         });
 
+        // ======= NUEVOS TOTALES PARA LAS TARJETAS =======
+        // Solo donaciones MONETARIAS
+        $donacionesMonetarias = $donaciones->where('tipodonacion', 'Monetaria');
+
+        // Confirmadas = estados 2,3,4 (confirmada, asignada, utilizada)
+        $montoConfirmadas = $donacionesMonetarias
+            ->whereIn('estadoid', [2, 3, 4])
+            ->sum('monto');
+
+        // Pendientes = estado 1
+        $montoPendientes = $donacionesMonetarias
+            ->where('estadoid', 1)
+            ->sum('monto');
+
+        // Total monetario (todas las monetarias sin importar estado)
+        $montoTotalMonetario = $donacionesMonetarias->sum('monto');
+
         $totales = [
-            'total_donado'   => $totalDonado,
-            'total_asignado' => $totalAsignado,
-            'total_saldo'    => $totalSaldo,
+            'total_donado'         => $totalDonado,
+            'total_asignado'       => $totalAsignado,
+            'total_saldo'          => $totalSaldo,
+
+            // Para las tarjetas de arriba
+            'monto_confirmadas'    => $montoConfirmadas,
+            'monto_pendientes'     => $montoPendientes,
+            'monto_total_monetario'=> $montoTotalMonetario,
         ];
 
         return view('campanias.resumen_cierre', compact('campania', 'donaciones', 'totales'));
@@ -65,13 +87,13 @@ class CampaniaCierreController extends Controller
     {
         $campania = Campania::findOrFail($campaniaid);
 
-        if (! $campania->activa) {
+        if (!$campania->activa) {
             return back()->with('status', 'La campaña ya está cerrada.');
         }
 
         $campania->activa = false;
 
-        if (! $campania->fechafin) {
+        if (!$campania->fechafin) {
             $campania->fechafin = now()->toDateString();
         }
 
