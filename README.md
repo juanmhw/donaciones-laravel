@@ -1,59 +1,135 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+📑 DOCUMENTACIÓN DEL PROYECTO: SISTEMA DE GESTIÓN Y TRAZABILIDAD DE DONACIONES (SGTD)
+🌟 1. Introducción y Alcance
+El Sistema de Gestión y Trazabilidad de Donaciones (SGTD), desarrollado en Laravel, es una plataforma integral diseñada para administrar campañas, registrar donaciones (monetarias y en especie), y asegurar la transparencia total en la asignación y uso de los fondos.
+El sistema se distingue por su robusta capacidad de integración con Gateways de API externos para la sincronización de campañas, la gestión de donaciones en especie y la trazabilidad logística de los bienes donados, desde su entrada al almacén hasta su destino final.
+💻 2. Pila Tecnológica y Dependencias
+Componente
+Tecnología/Versión
+Propósito
+Framework
+PHP Laravel
+Backend principal, arquitectura MVC y lógica de negocio.
+Base de Datos
+PostgreSQL (Postgres)
+Persistencia de datos transaccionales de alta integridad.
+Contenedores
+Docker / Docker Compose
+Entorno de despliegue estandarizado y reproducible (Nginx, PHP-FPM, DB).
+Autenticación/Roles
+Spatie Laravel Permission
+Manejo granular de roles (RoleController.php) y permisos de usuario.
+Sincronización
+Guzzle HTTP Client
+Integración con servicios externos (APIs de Gateway).
+Reportes
+Maatwebsite Excel, Barryvdh DomPDF
+Generación de reportes de cierres de caja y trazabilidad en formatos XLSX y PDF.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+✨ 3. Módulos y Funcionalidades Clave
+El SGTD está diseñado para cubrir el ciclo completo de la donación y su uso, incluyendo funcionalidades específicas para la transparencia y la logística de inventario.
+3.1. Gestión Financiera y Campañas
+Campañas: Creación, edición y control de campañas con metas de recaudación y fechas específicas (CampaniaController.php).
+Donaciones: Registro de donaciones (DonacionController.php), diferenciando entre tipo DINERO y ESPECIE.
+Saldos y Asignación: Control estricto de los saldos disponibles por cada donación (SaldosDonacionController.php). Permite asignar montos específicos a gastos o usos registrados (DonacionesAsignacionController.php).
+Reportes: Generación de Reportes de Cierre de Caja (ReporteCierreCajaController.php) y Reportes Generales de Campañas.
+3.2. Sincronización e Integración Externa
+El sistema depende de comandos de consola programados para obtener datos de sistemas externos. Estos comandos son ejecutados por el Scheduler (app/Console/Kernel.php).
+Recurso Sincronizado
+Comando de Consola
+Controlador API Receptor
+Campañas
+sync:campanias
+ApiCampaniaSyncController.php
+Donaciones (Dinero)
+sync:donaciones-dinero
+ApiDonacionSyncController.php
+Logística/Almacén
+sync:datos-externos
+TrazabilidadSyncController.php
+Paquetes/Trazabilidad
+sync:gateway-paquetes
+N/A (Consumo Directo)
 
-## About Laravel
+3.3. Logística y Trazabilidad (Inventario en Especie)
+Estructura de Almacenes: Sincroniza la estructura jerárquica de almacenes, estantes y espacios (Ext/AlmacenesEstructuraController.php).
+Trazabilidad de Ítems: Permite consultar y generar reportes del ciclo de vida de los artículos donados en especie (Ext/TrazabilidadController.php), vinculando ítems a campañas y asignaciones.
+3.4. Administración del Sistema
+Control de Acceso: Gestión de roles y permisos a través de Spatie.
+Centro de Mensajes: Módulo de comunicación interna para notificaciones y soporte (CentroMensajesController.php).
+⚙️ 4. Guía de Puesta en Marcha
+Se recomienda fuertemente el uso de Docker para el despliegue en producción y desarrollo para garantizar la uniformidad del entorno.
+4.1. Despliegue Estándar (Usando Docker Compose)
+Este método levanta todos los servicios (Nginx, PHP-FPM, DB, Scheduler) en contenedores aislados.
+Requisitos: Docker y Docker Compose (v2+).
+Clonar Repositorio:
+Bash
+git clone [URL_DEL_REPOSITORIO] donaciones-laravel
+cd donaciones-laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Configuración del Entorno (.env):
+Copie el archivo de ejemplo (cp .env.example .env). Asegúrese de configurar las URLs de los Gateways API (API_DONACIONES_URL y API_GATEWAY_URL).
+Fragmento de código
+DB_CONNECTION=pgsql
+DB_HOST=db  # Debe coincidir con el nombre del servicio en docker-compose.yml
+# ... otros parámetros de BD
+API_DONACIONES_URL="http://[SU_GATEWAY_DONACIONES]"
+API_GATEWAY_URL="http://[SU_GATEWAY_ALMACEN]"
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Learning Laravel
+Ejecutar Servicios:
+Bash
+docker compose up -d --build
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Instalar Dependencias e Inicializar BD:
+Ejecute los comandos dentro del contenedor laravel.
+Bash
+docker compose exec laravel composer install
+docker compose exec laravel php artisan key:generate
+docker compose exec laravel php artisan migrate
+docker compose exec laravel php artisan db:seed --force
+docker compose exec laravel php artisan optimize:clear
+docker compose restart laravel
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+URL de Acceso: La aplicación Nginx está expuesta a través de un proxy externo.
+4.2. Despliegue Local (Sin Docker Compose)
+Este método es para desarrollo local rápido.
+Requisitos: PHP (8.2+), Composer, Servidor Web (Apache/Nginx o Artisan Serve), PostgreSQL (Servicio corriendo localmente).
+Clonar y Dependencias:
+Bash
+git clone [URL_DEL_REPOSITORIO] donaciones-laravel
+cd donaciones-laravel
+composer install
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Configuración del Entorno (.env):
+Ajuste las variables DB_HOST, DB_USERNAME, y DB_PASSWORD para conectar a su servidor PostgreSQL local (DB_HOST=127.0.0.1).
+Inicializar la Base de Datos Local:
+Bash
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan optimize:clear
 
-## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Ejecutar Servidor de Desarrollo:
+Bash
+php artisan serve
+# Acceso: http://127.0.0.1:8000
 
-## Code of Conduct
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+🔄 6. Tareas Programadas (Scheduler)
+Para mantener la información sincronizada con los Gateways externos, debe asegurarse de que el Scheduler se ejecute continuamente:
+Entorno
+Método de Ejecución
+Comando
+Docker
+Contenedor scheduler (Automático)
+php artisan schedule:work
+Nativo (Producción)
+Cron Job del Sistema Operativo
+* * * * * cd /ruta/al/proyecto && php artisan schedule:run >> /dev/null 2>&1
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
