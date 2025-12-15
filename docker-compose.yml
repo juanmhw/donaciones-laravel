@@ -1,0 +1,103 @@
+services:
+  # --- TU APP LARAVEL ---
+  laravel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transparencia-donaciones-laravel
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    environment:
+      APP_NAME: Laravel
+      APP_ENV: local
+      APP_DEBUG: "true"
+      # TU CLAVE REAL:
+      APP_KEY: "base64:X8nyK98ag/d2uCKYgyPchsPAZia71misVstUk6G7sto="
+      APP_URL: "http://localhost"
+      
+      # CONEXIÓN BASE DE DATOS (INTERNA DE DOCKER)
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: donaciones  # <--- CORREGIDO (era donacionespro)
+      DB_USERNAME: postgres
+      DB_PASSWORD: "123"
+
+      # TUS APIS REALES
+      API_DONACIONES_URL: "http://donaciones.dasalas.shop"
+      API_GATEWAY_URL: "http://gatealas.dasalas.shop"
+
+      # CONFIGURACIÓN
+      QUEUE_CONNECTION: database
+      SESSION_DRIVER: database
+      CACHE_STORE: file  # <--- Lo dejé en file como tu .env, aunque database es mejor en prod.
+    depends_on:
+      - db
+    networks:
+      - transparencia-net
+
+  # --- EL SCHEDULER (CRON) ---
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transparencia-donaciones-scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    volumes:
+      - .:/var/www
+    environment:
+      # MISMAS VARIABLES QUE ARRIBA PARA QUE FUNCIONE IGUAL
+      APP_KEY: "base64:X8nyK98ag/d2uCKYgyPchsPAZia71misVstUk6G7sto="
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: donaciones
+      DB_USERNAME: postgres
+      DB_PASSWORD: "123"
+      API_DONACIONES_URL: "http://donaciones.dasalas.shop"
+      API_GATEWAY_URL: "http://gatealas.dasalas.shop"
+      QUEUE_CONNECTION: database
+      SESSION_DRIVER: database
+    depends_on:
+      - db
+      - laravel
+    networks:
+      - transparencia-net
+
+  # --- SERVIDOR WEB ---
+  nginx:
+    image: nginx:alpine
+    container_name: transparencia-donaciones-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - laravel
+    networks:
+      - transparencia-net
+
+  # --- BASE DE DATOS ---
+  db:
+    image: postgres:15
+    container_name: transparencia-donaciones-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: donaciones # <--- CORREGIDO
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - transparencia-net
+
+networks:
+  transparencia-net:
+    driver: bridge
+
+volumes:
+  db-data:
