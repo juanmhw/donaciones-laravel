@@ -97,25 +97,6 @@
                     </div>
                 </div>
 
-                {{-- JSON CRUDO (COLAPSABLE) --}}
-                <div class="card shadow-sm border-0 mt-3">
-                    <div class="card-body">
-                        <button class="btn btn-outline-secondary btn-sm w-100"
-                                type="button"
-                                data-toggle="collapse"
-                                data-target="#jsonRaw"
-                                aria-expanded="false"
-                                aria-controls="jsonRaw">
-                            <i class="fas fa-code mr-1"></i> Ver JSON completo
-                        </button>
-
-                        <div class="collapse mt-3" id="jsonRaw">
-                            <pre class="bg-light p-3 rounded border small mb-0"
-                                 style="max-height: 320px; overflow:auto;">{{ json_encode($raw, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE) }}</pre>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
             {{-- PAQUETES + HISTORIAL --}}

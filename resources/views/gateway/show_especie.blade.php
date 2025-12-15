@@ -161,12 +161,6 @@
                                                         </ul>
                                                     @endif
 
-                                                    @if(!empty($img))
-                                                        <div class="mt-3">
-                                                            <small class="text-muted d-block mb-1">Archivo asociado</small>
-                                                            <code class="small">{{ $img }}</code>
-                                                        </div>
-                                                    @endif
                                                 </div>
                                             </div>
                                         @endforeach

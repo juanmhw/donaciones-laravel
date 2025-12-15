@@ -21,11 +21,12 @@
     @endif
 
     @php
-        $totalCampanias   = $campanias->count();
-        $totalActivas     = $campanias->where('activa', 1)->count();
-        $metaTotal        = $campanias->sum('metarecaudacion');
-        $recaudadoTotal   = $campanias->sum('montorecaudado');
+        $totalCampanias = $campanias->count();
+        $totalActivas   = $campanias->where('activa', 1)->count();
+        $metaTotal      = $campanias->sum('metarecaudacion');
+        $recaudadoTotal = $campanias->sum('montorecaudado_calculado');
     @endphp
+
 
     {{-- RESUMEN --}}
     <div class="campanias-summary-grid">
@@ -90,7 +91,7 @@
                     @forelse($campanias as $campania)
                         @php
                             $meta   = $campania->metarecaudacion ?? 0;
-                            $reca   = $campania->montorecaudado ?? 0;
+                            $reca   = $campania->montorecaudado_calculado ?? 0;
                             $avance = $meta > 0 ? round(($reca / $meta) * 100) : 0;
                             $creador = optional($campania->creador);
                         @endphp

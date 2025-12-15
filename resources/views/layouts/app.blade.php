@@ -50,7 +50,9 @@
         .role-chip { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem; background-color: #e5e7eb; color: #374151; margin: 0 0.15rem 0.15rem 0; }
         .user-avatar-circle { width: 40px; height: 40px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; background: linear-gradient(135deg, #6366f1, #3b82f6); color: white; }
     </style>
+    
 </head>
+
 <body class="hold-transition sidebar-mini layout-fixed">
     <div class="wrapper">
         
@@ -136,7 +138,7 @@
                         <li class="nav-item">
                             <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
-                                <p>Dashboard</p>
+                                <p>Estadísticas</p>
                             </a>
                         </li>
                         
@@ -157,7 +159,6 @@
                         @endrole
 
                         @hasanyrole('Administrador|Reportes')
-                        <li class="nav-header">GESTIÓN</li>
 
                         <li class="nav-item {{ request()->routeIs('campanias.*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->routeIs('campanias.*') ? 'active' : '' }}">
@@ -177,12 +178,6 @@
                                     <a href="{{ route('campanias.reporteGeneral') }}" class="nav-link {{ request()->routeIs('campanias.reporteGeneral') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Reporte General</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('campanias.cierreSeleccion') }}" class="nav-link {{ request()->routeIs('campanias.cierre*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Cierre de campaña</p>
                                     </a>
                                 </li>
                             </ul>

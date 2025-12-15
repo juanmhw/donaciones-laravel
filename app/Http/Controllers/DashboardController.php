@@ -80,7 +80,7 @@ class DashboardController extends Controller
         // =========================
         $totalUsuarios    = Usuario::count();
         $mensajesTotales  = Mensaje::count();
-        $mensajesNoLeidos = Mensaje::where('leido', false)->count();
+        $mensajesNoLeidos = 0;
 
         $ultimosMensajes = Mensaje::with('usuario')
             ->orderByDesc('mensajeid')

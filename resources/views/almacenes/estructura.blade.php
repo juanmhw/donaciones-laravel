@@ -2,281 +2,339 @@
 
 @push('css')
 <style>
-/* ====== SOLO ALMACENES (aislado) ====== */
-.almx-wrap { font-family: inherit; }
+  /* Ajustes mínimos (AdminLTE hace lo demás) */
+  .almx-space-btn{
+    border-radius: 999px;
+    padding: .2rem .55rem;
+    line-height: 1.1;
+    margin: .18rem .18rem 0 0;
+  }
+  .almx-space-wrap{ display:flex; flex-wrap:wrap; }
+  .almx-muted{ color:#6c757d; font-size:.85rem; }
+  .almx-badge{ font-size:.72rem; padding:.35rem .5rem; border-radius:999px; }
 
-/* Card principal del almacén */
-.almx-almacen {
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 10px 25px rgba(15,23,42,.06);
-}
-
-/* Header degradado */
-.almx-almacen__head{
-  background: linear-gradient(90deg, #4f46e5, #6366f1);
-  color:#fff;
-  padding: 16px 18px;
-}
-
-.almx-almacen__title{
-  font-weight: 800;
-  margin: 0;
-  font-size: 1.05rem;
-}
-.almx-almacen__sub{
-  opacity: .9;
-  font-size: .9rem;
-}
-
-.almx-pill{
-  display:inline-flex;
-  align-items:center;
-  gap:.35rem;
-  padding:.25rem .65rem;
-  border-radius: 999px;
-  background: rgba(255,255,255,.18);
-  font-size:.8rem;
-  font-weight:600;
-}
-
-/* Estantes como cards pequeñas */
-.almx-estante{
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background:#fff;
-  overflow:hidden;
-  height: 100%;
-}
-.almx-estante__head{
-  padding: 10px 12px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
-  font-weight: 700;
-  display:flex;
-  align-items:center;
-  gap:.5rem;
-}
-.almx-estante__body{ padding: 12px; }
-
-/* Chips */
-.almx-chips{ display:flex; flex-wrap:wrap; gap:.45rem; }
-
-.almx-chip{
-  border-radius:999px;
-  padding:.25rem .65rem;
-  font-size:.78rem;
-  border:1px solid #e5e7eb;
-  background:#fff;
-  display:inline-flex;
-  align-items:center;
-  gap:.35rem;
-  line-height: 1;
-}
-
-.almx-chip--click{
-  cursor:pointer;
-  border-color:#4f46e5;
-  background:#eef2ff;
-  transition: .15s ease-in-out;
-}
-.almx-chip--click:hover{
-  background:#4f46e5;
-  color:#fff;
-}
-.almx-chip--click:hover .text-muted{ color:#e0e7ff !important; }
-
-.almx-dot{
-  width:10px; height:10px; border-radius:50%;
-  display:inline-block;
-}
-.almx-dot--ok{ background:#22c55e; }
-.almx-dot--bad{ background:#ef4444; }
-.almx-dot--na{ background:#9ca3af; }
-
-/* Leyenda */
-.almx-legend{
-  margin-top: 10px;
-  display:flex;
-  gap: 1rem;
-  font-size: .85rem;
-  color:#6b7280;
-  border-top: 1px dashed #e5e7eb;
-  padding-top: 10px;
-}
-.almx-legend span{ display:inline-flex; align-items:center; gap:.4rem; }
-
-/* Modal table compacto */
-.almx-table th{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }
-.almx-table td{ vertical-align: middle; }
+  /* Fixes típicos AdminLTE + Bootstrap modal */
+  .modal { overflow-y:auto; }
+  .modal-backdrop { z-index:1040 !important; }
+  .modal { z-index:1050 !important; }
 </style>
 @endpush
 
 @section('content')
-<div class="container py-4 almx-wrap">
-
-  <div class="mb-3">
-    <h1 class="h3 font-weight-bold mb-0">Estructura de Almacenes</h1>
-    <small class="text-muted">Visualiza almacenes, estantes y espacios sincronizados.</small>
-  </div>
-
-  @foreach ($almacenes as $almacen)
-    @php
-      $totalEstantes = $almacen->estantes->count();
-      $totalEspacios = $almacen->estantes->flatMap->espacios->count();
-    @endphp
-
-    <div class="almx-almacen mb-4">
-      <div class="almx-almacen__head d-flex justify-content-between align-items-start flex-wrap" style="gap:12px;">
-        <div>
-          <div class="almx-almacen__title">{{ $almacen->nombre }}</div>
-          @if($almacen->direccion)
-            <div class="almx-almacen__sub">📍 {{ $almacen->direccion }}</div>
-          @endif
-          @if($almacen->latitud && $almacen->longitud)
-            <div class="almx-almacen__sub mt-1">📌 Lat: {{ $almacen->latitud }} · Lng: {{ $almacen->longitud }}</div>
-          @endif
-        </div>
-
-        <div class="d-flex" style="gap:.5rem;">
-          <span class="almx-pill"><i class="fas fa-layer-group"></i> {{ $totalEstantes }} estantes</span>
-          <span class="almx-pill"><i class="fas fa-th-large"></i> {{ $totalEspacios }} espacios</span>
-        </div>
+<section class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-8">
+        <h1 class="m-0">Estructura de Almacenes</h1>
+        <p class="text-muted mb-0">Visualiza almacenes, estantes y espacios sincronizados.</p>
       </div>
-
-      <div class="p-3 bg-white">
-        @if ($almacen->estantes->isEmpty())
-          <div class="text-muted">No hay estantes registrados para este almacén.</div>
-        @else
-          <div class="row">
-            @foreach ($almacen->estantes as $estante)
-              <div class="col-md-6 col-lg-4 mb-3">
-                <div class="almx-estante">
-                  <div class="almx-estante__head">
-                    <i class="fas fa-stream text-muted"></i>
-                    Estante: {{ $estante->codigo_estante }}
-                  </div>
-
-                  <div class="almx-estante__body">
-                    @if($estante->descripcion)
-                      <div class="text-muted mb-2" style="font-size:.85rem;">{{ $estante->descripcion }}</div>
-                    @endif
-
-                    @php $espacios = $estante->espacios; @endphp
-
-                    @if($espacios->isEmpty())
-                      <span class="text-muted" style="font-size:.85rem;">Sin espacios registrados.</span>
-                    @else
-                      <div class="almx-chips">
-                        @foreach ($espacios as $espacio)
-                          @php
-                            $items = $espacio->items;
-                            $tieneItems = $items->count() > 0;
-
-                            $dot = 'almx-dot--na';
-                            if ($tieneItems) $dot = 'almx-dot--bad';
-                            elseif (($espacio->estado ?? '') === 'disponible') $dot = 'almx-dot--ok';
-                          @endphp
-
-                          @if($tieneItems)
-                            {{-- AdminLTE 3 (Bootstrap 4): data-toggle / data-target --}}
-                            <button type="button"
-                              class="almx-chip almx-chip--click"
-                              data-toggle="modal"
-                              data-target="#modalEspacio{{ $espacio->espacioid }}">
-                              <span class="almx-dot {{ $dot }}"></span>
-                              <strong>{{ $espacio->codigo_espacio }}</strong>
-                              <span class="text-muted">({{ $items->count() }})</span>
-                            </button>
-
-                            {{-- Modal --}}
-                            <div class="modal fade" id="modalEspacio{{ $espacio->espacioid }}" tabindex="-1" role="dialog" aria-hidden="true">
-                              <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                                <div class="modal-content">
-                                  <div class="modal-header bg-primary">
-                                    <h5 class="modal-title">
-                                      <i class="fas fa-box-open mr-1"></i>
-                                      Contenido en {{ $espacio->codigo_espacio }}
-                                    </h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                      <span aria-hidden="true">&times;</span>
-                                    </button>
-                                  </div>
-
-                                  <div class="modal-body">
-                                    <p class="text-muted mb-2">
-                                      <strong>Ubicación:</strong> {{ $almacen->nombre }} &raquo; {{ $estante->codigo_estante }}
-                                    </p>
-
-                                    <div class="table-responsive">
-                                      <table class="table table-sm table-hover almx-table">
-                                        <thead class="thead-light">
-                                          <tr>
-                                            <th>Producto</th>
-                                            <th class="text-center">Cantidad</th>
-                                            <th>Donante</th>
-                                            <th>Fecha</th>
-                                            <th>Código</th>
-                                            <th class="text-right">Link</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          @foreach($items as $item)
-                                            <tr>
-                                              <td class="font-weight-bold text-primary">{{ $item->nombre_producto }}</td>
-                                              <td class="text-center">{{ $item->cantidad_donada }} {{ $item->unidad_empaque }}</td>
-                                              <td>{{ $item->nombre_donante }}</td>
-                                              <td>{{ \Carbon\Carbon::parse($item->fecha_donacion)->format('d/m/Y') }}</td>
-                                              <td class="text-nowrap">{{ $item->codigo_unico }}</td>
-                                              <td class="text-right">
-                                                    @if($item->codigo_paquete)
-                                                        {{-- Enlace a NUESTRA ruta local con diseño mejorado --}}
-                                                        <a class="btn btn-xs btn-primary text-white"
-                                                        href="{{ route('reportes.trazabilidad.paquete', $item->codigo_paquete) }}">
-                                                        <i class="fas fa-eye"></i> Ver Detalles
-                                                        </a>
-                                                    @else
-                                                        <span class="text-muted">-</span>
-                                                    @endif
-                                              </td>
-                                            </tr>
-                                          @endforeach
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  </div>
-
-                                  <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          @else
-                            <span class="almx-chip" title="Espacio vacío">
-                              <span class="almx-dot {{ $dot }}"></span>
-                              {{ $espacio->codigo_espacio }}
-                            </span>
-                          @endif
-                        @endforeach
-                      </div>
-
-                      <div class="almx-legend">
-                        <span><i class="almx-dot almx-dot--ok"></i> Disponible</span>
-                        <span><i class="almx-dot almx-dot--bad"></i> Ocupado</span>
-                        <span><i class="almx-dot almx-dot--na"></i> Desconocido</span>
-                      </div>
-                    @endif
-                  </div>
-                </div>
-              </div>
-            @endforeach
-          </div>
-        @endif
+      <div class="col-sm-4">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{{ route('home') }}">Inicio</a></li>
+          <li class="breadcrumb-item active">Almacenes</li>
+        </ol>
       </div>
     </div>
-  @endforeach
+  </div>
+</section>
 
+<section class="content">
+  <div class="container-fluid">
+
+    @forelse ($almacenes as $almacen)
+      @php
+        $totalEstantes = $almacen->estantes->count();
+        $totalEspacios = $almacen->estantes->flatMap->espacios->count();
+      @endphp
+
+      <div class="card card-primary card-outline">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-start flex-wrap" style="gap:10px;">
+            <div>
+              <h3 class="card-title font-weight-bold">
+                <i class="fas fa-warehouse mr-1"></i> {{ $almacen->nombre }}
+              </h3>
+              <div class="almx-muted mt-1">
+                @if($almacen->direccion)
+                  <i class="fas fa-map-marker-alt mr-1"></i> {{ $almacen->direccion }}
+                @endif
+
+                @if($almacen->latitud && $almacen->longitud)
+                  <span class="ml-2">
+                    <i class="fas fa-location-arrow mr-1"></i>
+                    {{ $almacen->latitud }} · {{ $almacen->longitud }}
+                  </span>
+                @endif
+              </div>
+            </div>
+
+            <div class="card-tools d-flex" style="gap:.5rem;">
+              <span class="badge badge-info almx-badge">
+                <i class="fas fa-layer-group mr-1"></i> {{ $totalEstantes }} estantes
+              </span>
+              <span class="badge badge-secondary almx-badge">
+                <i class="fas fa-th mr-1"></i> {{ $totalEspacios }} espacios
+              </span>
+
+              <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Contraer">
+                <i class="fas fa-minus"></i>
+              </button>
+              <button type="button" class="btn btn-tool" data-card-widget="remove" title="Cerrar">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          {{-- Resumen --}}
+          <div class="row mb-3">
+            <div class="col-md-6 col-lg-3">
+              <div class="info-box">
+                <span class="info-box-icon bg-info"><i class="fas fa-layer-group"></i></span>
+                <div class="info-box-content">
+                  <span class="info-box-text">Estantes</span>
+                  <span class="info-box-number">{{ $totalEstantes }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+              <div class="info-box">
+                <span class="info-box-icon bg-secondary"><i class="fas fa-th-large"></i></span>
+                <div class="info-box-content">
+                  <span class="info-box-text">Espacios</span>
+                  <span class="info-box-number">{{ $totalEspacios }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-lg-6">
+              <div class="callout callout-info mb-0">
+                <div class="d-flex flex-wrap" style="gap:.5rem;">
+                  <span class="badge badge-success almx-badge">
+                    <i class="fas fa-circle mr-1"></i> Disponible
+                  </span>
+                  <span class="badge badge-danger almx-badge">
+                    <i class="fas fa-circle mr-1"></i> Ocupado
+                  </span>
+                  <span class="badge badge-light almx-badge">
+                    <i class="fas fa-circle mr-1"></i> Desconocido
+                  </span>
+                </div>
+                <small class="text-muted d-block mt-1">
+                  Tip: los espacios con contenido se pueden abrir para ver detalle.
+                </small>
+              </div>
+            </div>
+          </div>
+
+          {{-- Estantes --}}
+          @if ($almacen->estantes->isEmpty())
+            <div class="alert alert-warning mb-0">
+              <i class="fas fa-exclamation-triangle mr-1"></i>
+              No hay estantes registrados para este almacén.
+            </div>
+          @else
+            <div class="row">
+              @foreach ($almacen->estantes as $estante)
+                @php $espacios = $estante->espacios; @endphp
+
+                <div class="col-md-6 col-lg-4">
+                  <div class="card card-outline card-secondary">
+                    <div class="card-header">
+                      <h3 class="card-title">
+                        <i class="fas fa-stream mr-1 text-muted"></i>
+                        Estante: <strong>{{ $estante->codigo_estante }}</strong>
+                      </h3>
+                      <div class="card-tools">
+                        <span class="badge badge-light">{{ $espacios->count() }} espacios</span>
+                      </div>
+                    </div>
+
+                    <div class="card-body">
+                      @if($estante->descripcion)
+                        <p class="text-muted mb-2">{{ $estante->descripcion }}</p>
+                      @endif
+
+                      @if($espacios->isEmpty())
+                        <div class="text-muted">Sin espacios registrados.</div>
+                      @else
+                        <div class="almx-space-wrap">
+                          @foreach ($espacios as $espacio)
+                            @php
+                              $items = $espacio->items;
+                              $tieneItems = $items->count() > 0;
+
+                              // Botón por estado
+                              $btnClass = 'btn-outline-secondary';
+                              $badge = 'badge-light';
+                              $estadoTxt = 'Desconocido';
+
+                              if ($tieneItems) { $btnClass = 'btn-outline-danger'; $badge='badge-danger'; $estadoTxt='Ocupado'; }
+                              elseif (($espacio->estado ?? '') === 'disponible') { $btnClass = 'btn-outline-success'; $badge='badge-success'; $estadoTxt='Disponible'; }
+
+                              // Payload estable (ya formateado) para el modal
+                              $payload = $items->map(function($item){
+                                return [
+                                  'nombre_producto' => $item->nombre_producto,
+                                  'cantidad_donada' => $item->cantidad_donada,
+                                  'unidad_empaque'  => $item->unidad_empaque,
+                                  'nombre_donante'  => $item->nombre_donante,
+                                  'fecha'           => \Carbon\Carbon::parse($item->fecha_donacion)->format('d/m/Y'),
+                                  'codigo_unico'    => $item->codigo_unico,
+                                  'url'             => $item->codigo_paquete ? route('reportes.trazabilidad.paquete', $item->codigo_paquete) : null,
+                                ];
+                              })->values();
+                            @endphp
+
+                            @if($tieneItems)
+                              <button type="button"
+                                class="btn btn-sm {{ $btnClass }} almx-space-btn"
+                                data-toggle="modal"
+                                data-target="#modalEspacioGlobal"
+                                data-espacio="{{ $espacio->codigo_espacio }}"
+                                data-almacen="{{ $almacen->nombre }}"
+                                data-estante="{{ $estante->codigo_estante }}"
+                                data-estado="{{ $estadoTxt }}"
+                                data-badge="{{ $badge }}"
+                                data-items='@json($payload)'>
+                                <i class="fas fa-box mr-1"></i>
+                                {{ $espacio->codigo_espacio }}
+                                <span class="badge {{ $badge }} ml-1">{{ $items->count() }}</span>
+                              </button>
+                            @else
+                              <span class="btn btn-sm {{ $btnClass }} almx-space-btn disabled" title="Espacio vacío">
+                                <i class="fas fa-circle mr-1"></i>
+                                {{ $espacio->codigo_espacio }}
+                              </span>
+                            @endif
+                          @endforeach
+                        </div>
+                      @endif
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          @endif
+
+        </div>
+      </div>
+
+    @empty
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle mr-1"></i>
+        No existen almacenes registrados.
+      </div>
+    @endforelse
+
+  </div>
+</section>
+
+{{-- ✅ MODAL GLOBAL ÚNICO (fuera de loops) --}}
+<div class="modal fade" id="modalEspacioGlobal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header bg-primary">
+        <h5 class="modal-title">
+          <i class="fas fa-box-open mr-1"></i>
+          <span id="almxModalTitulo">Contenido</span>
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="d-flex align-items-center flex-wrap" style="gap:.5rem;">
+          <span class="badge" id="almxModalEstadoBadge">-</span>
+          <small class="text-muted" id="almxModalUbicacion">-</small>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="table-responsive">
+          <table class="table table-sm table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>Producto</th>
+                <th class="text-center">Cantidad</th>
+                <th>Donante</th>
+                <th>Fecha</th>
+                <th>Código</th>
+                <th class="text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="almxModalBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
 </div>
+
+@push('scripts')
+<script>
+(function () {
+  // Limpia backdrop si quedó “colgado” por algún cierre raro
+  $('#modalEspacioGlobal').on('hidden.bs.modal', function () {
+    $('body').removeClass('modal-open');
+    $('.modal-backdrop').remove();
+  });
+
+  $('#modalEspacioGlobal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+
+    const espacio = button.data('espacio') || '';
+    const almacen = button.data('almacen') || '';
+    const estante = button.data('estante') || '';
+    const estado  = button.data('estado')  || 'Desconocido';
+    const badge   = button.data('badge')   || 'badge-light';
+
+    const items = button.data('items') || [];
+
+    $('#almxModalTitulo').text(`Contenido en ${espacio}`);
+    $('#almxModalUbicacion').text(`${almacen} » ${estante}`);
+    $('#almxModalEstadoBadge').attr('class', `badge ${badge}`).text(estado);
+
+    let rows = '';
+
+    if (!items.length) {
+      rows = `<tr><td colspan="6" class="text-center text-muted">Sin contenido</td></tr>`;
+    } else {
+      items.forEach(item => {
+        const url = item.url;
+        const accion = url
+          ? `<a class="btn btn-xs btn-primary" href="${url}">
+               <i class="fas fa-eye"></i> Ver Detalles
+             </a>`
+          : `<span class="text-muted">-</span>`;
+
+        rows += `
+          <tr>
+            <td class="font-weight-bold text-primary">${item.nombre_producto ?? ''}</td>
+            <td class="text-center">${item.cantidad_donada ?? ''} ${item.unidad_empaque ?? ''}</td>
+            <td>${item.nombre_donante ?? ''}</td>
+            <td>${item.fecha ?? ''}</td>
+            <td class="text-nowrap">${item.codigo_unico ?? ''}</td>
+            <td class="text-right">${accion}</td>
+          </tr>
+        `;
+      });
+    }
+
+    $('#almxModalBody').html(rows);
+  });
+})();
+</script>
+@endpush
+
 @endsection

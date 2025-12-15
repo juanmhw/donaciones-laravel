@@ -8,19 +8,20 @@ use Illuminate\Support\Facades\Auth; // Importante para Auth::id()
 
 class CampaniaController extends Controller
 {
-public function index()
+    public function index()
     {
-        // Listado con suma de recaudación (Monetaria + Confirmada/Asignada/Utilizada)
-        $campanias = Campania::with(['creador'])
+        $campanias = Campania::with('creador')
             ->withSum(['donaciones as montorecaudado_calculado' => function ($q) {
                 $q->where('tipodonacion', 'Monetaria')
-                  ->whereIn('estadoid', [2, 3, 4]); 
+                ->whereIn('estadoid', [2, 3, 4]); // Confirmada/Asignada/Utilizada
             }], 'monto')
             ->orderByDesc('campaniaid')
             ->get();
 
         return view('campanias.index', compact('campanias'));
     }
+
+
 
     public function create()
     {

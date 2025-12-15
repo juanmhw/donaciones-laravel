@@ -8,7 +8,7 @@ class Mensaje extends Model
 {
     protected $table = 'mensajes';
     protected $primaryKey = 'mensajeid';
-    public $timestamps = false; // si tu tabla no tiene created_at/updated_at
+    public $timestamps = false;
 
     protected $fillable = [
         'conversacionid',
@@ -19,8 +19,14 @@ class Mensaje extends Model
         'leido',
     ];
 
-    // ✅ el "remitente" ahora es usuarioid
+    // relación base
     public function usuario()
+    {
+        return $this->belongsTo(Usuario::class, 'usuarioid', 'usuarioid');
+    }
+
+    // ✅ ALIAS PARA CHAT
+    public function autor()
     {
         return $this->belongsTo(Usuario::class, 'usuarioid', 'usuarioid');
     }
@@ -30,3 +36,4 @@ class Mensaje extends Model
         return $this->belongsTo(Conversacion::class, 'conversacionid', 'conversacionid');
     }
 }
+
