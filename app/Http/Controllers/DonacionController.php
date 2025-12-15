@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class DonacionController extends Controller
 {
-    /** LISTADO */
+/** LISTADO */
     public function index()
     {
         $donaciones = Donacion::with(['usuario','campania','estado','saldo'])
@@ -22,8 +22,9 @@ class DonacionController extends Controller
     /** FORM CREAR */
     public function create()
     {
-        // NO enviamos $usuarios porque el donante es el logueado
-        $campanias = Campania::orderByDesc('campaniaid')->get();
+        // MODIFICADO: Ya no enviamos $usuarios. 
+        // El donante se asigna automáticamente al usuario logueado.
+        $campanias = Campania::where('activa', true)->orderByDesc('campaniaid')->get(); // Solo campañas activas
         $estados   = Estado::orderBy('estadoid')->get();
         
         return view('donaciones.create', compact('campanias','estados'));
@@ -33,7 +34,7 @@ class DonacionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            // 'usuarioid' eliminado de rules
+            // 'usuarioid' no se valida aquí porque lo inyectamos abajo
             'campaniaid'    => 'required|integer|exists:campanias,campaniaid',
             'monto'         => 'required|numeric|min:0.01',
             'tipodonacion'  => ['required','in:Monetaria,Especie,monetaria,especie'],
@@ -43,23 +44,25 @@ class DonacionController extends Controller
             'esanonima'     => 'nullable|boolean',
         ]);
 
-        // ASIGNACIÓN AUTOMÁTICA
+        // ASIGNACIÓN AUTOMÁTICA DEL USUARIO LOGUEADO
         $validated['usuarioid'] = Auth::id();
 
-        // Normalizar
+        // Normalizar tipo
         $validated['tipodonacion'] = ucfirst(strtolower($validated['tipodonacion']));
 
+        // Fecha
         if ($request->filled('fechadonacion')) {
             $validated['fechadonacion'] = \Carbon\Carbon::parse($request->input('fechadonacion'))
                 ->format('Y-m-d H:i:s');
         }
 
+        // Checkbox anónimo
         $validated['esanonima'] = $request->boolean('esanonima', false);
 
         DB::transaction(function () use ($validated) {
             $don = Donacion::create($validated);
 
-            // Crear saldo
+            // Crear registro de saldo
             SaldosDonacion::firstOrCreate(
                 ['donacionid' => $don->donacionid],
                 [
@@ -70,20 +73,21 @@ class DonacionController extends Controller
                 ]
             );
 
-            // Actualizar campaña
-            $sum = Donacion::where('campaniaid',$don->campaniaid)->sum('monto');
-            Campania::where('campaniaid',$don->campaniaid)->update(['montorecaudado'=>$sum]);
+            // Actualizar total recaudado en la campaña
+            $sum = Donacion::where('campaniaid', $don->campaniaid)->sum('monto');
+            Campania::where('campaniaid', $don->campaniaid)->update(['montorecaudado' => $sum]);
         });
 
-        return redirect()->route('donaciones.index')->with('success','Donación creada.');
+        return redirect()->route('donaciones.index')->with('success','Donación creada exitosamente.');
     }
 
     /** FORM EDITAR */
     public function edit($id)
     {
         $donacion  = Donacion::findOrFail($id);
-        // Aquí sí mandamos usuarios por si un admin necesita corregir quién donó
-        $usuarios  = Usuario::orderByDesc('usuarioid')->get();
+        
+        // En EDITAR sí mandamos usuarios, por si un ADMINISTRADOR necesita corregir quién hizo la donación.
+        $usuarios  = Usuario::orderBy('nombre')->get();
         $campanias = Campania::orderByDesc('campaniaid')->get();
         $estados   = Estado::orderBy('estadoid')->get();
 
@@ -96,7 +100,7 @@ class DonacionController extends Controller
         $donacion = Donacion::findOrFail($id);
 
         $validated = $request->validate([
-            'usuarioid'     => 'nullable|integer|exists:usuarios,usuarioid', // En editar permitimos cambiarlo
+            'usuarioid'     => 'nullable|integer|exists:usuarios,usuarioid', // En update permitimos cambiarlo si se envía
             'campaniaid'    => 'required|integer|exists:campanias,campaniaid',
             'monto'         => 'required|numeric|min:0.01',
             'tipodonacion'  => ['required','in:Monetaria,Especie,monetaria,especie'],
@@ -117,9 +121,11 @@ class DonacionController extends Controller
 
         DB::transaction(function () use ($donacion, $validated) {
             $campaniaAnterior = $donacion->campaniaid;
+            
+            // Actualizamos la donación
             $donacion->update($validated);
 
-            // Ajustar saldo
+            // Ajustar saldo (si el monto cambió)
             $saldo = SaldosDonacion::firstOrCreate(
                 ['donacionid' => $donacion->donacionid],
                 [
@@ -133,18 +139,19 @@ class DonacionController extends Controller
             if ($saldo->montooriginal != $donacion->monto) {
                 $delta = $donacion->monto - $saldo->montooriginal;
                 $saldo->montooriginal    = $donacion->monto;
+                // Ajustamos el disponible con el delta, sin bajar de 0
                 $saldo->saldodisponible  = max(0, $saldo->saldodisponible + $delta);
                 $saldo->ultimaactualizacion = now();
                 $saldo->save();
             }
 
-            // Actualizar campañas
+            // Recalcular montos de campañas (Anterior y Nueva)
             if ($campaniaAnterior != $donacion->campaniaid) {
-                $sumOld = Donacion::where('campaniaid',$campaniaAnterior)->sum('monto');
-                Campania::where('campaniaid',$campaniaAnterior)->update(['montorecaudado'=>$sumOld]);
+                $sumOld = Donacion::where('campaniaid', $campaniaAnterior)->sum('monto');
+                Campania::where('campaniaid', $campaniaAnterior)->update(['montorecaudado' => $sumOld]);
             }
-            $sumNew = Donacion::where('campaniaid',$donacion->campaniaid)->sum('monto');
-            Campania::where('campaniaid',$donacion->campaniaid)->update(['montorecaudado'=>$sumNew]);
+            $sumNew = Donacion::where('campaniaid', $donacion->campaniaid)->sum('monto');
+            Campania::where('campaniaid', $donacion->campaniaid)->update(['montorecaudado' => $sumNew]);
         });
 
         return redirect()->route('donaciones.index')->with('success','Donación actualizada.');
@@ -156,16 +163,20 @@ class DonacionController extends Controller
         DB::transaction(function () use ($id) {
             $don = Donacion::findOrFail($id);
 
-            $usos = \App\Models\DonacionesAsignacion::where('donacionid',$id)->count();
+            // Verificar si ya se usó dinero de esta donación
+            $usos = \App\Models\DonacionesAsignacion::where('donacionid', $id)->count();
             if ($usos > 0) {
-                abort(422, 'No se puede eliminar: la donación ya fue asignada.');
+                // abort(422) lanzará una página de error, o puedes redirigir con error:
+                throw new \Exception('No se puede eliminar: la donación ya fue asignada/utilizada.');
             }
 
-            SaldosDonacion::where('donacionid',$id)->delete();
+            // Borrar saldo y donación
+            SaldosDonacion::where('donacionid', $id)->delete();
             $don->delete();
 
-            $sum = Donacion::where('campaniaid',$don->campaniaid)->sum('monto');
-            Campania::where('campaniaid',$don->campaniaid)->update(['montorecaudado'=>$sum]);
+            // Actualizar campaña
+            $sum = Donacion::where('campaniaid', $don->campaniaid)->sum('monto');
+            Campania::where('campaniaid', $don->campaniaid)->update(['montorecaudado' => $sum]);
         });
 
         return redirect()->route('donaciones.index')->with('success','Donación eliminada.');

@@ -133,10 +133,6 @@
                             <td class="text-right">
                                 <div class="btn-group btn-group-sm">
                                     {{-- reasignar campaña --}}
-                                    <a href="{{ route('donaciones.reasignarForm', $donacion->donacionid) }}"
-                                       class="btn btn-outline-info" title="Reasignar campaña">
-                                        <i class="fas fa-random"></i>
-                                    </a>
                                     <a href="{{ route('donaciones.edit', $donacion->donacionid) }}"
                                        class="btn btn-outline-primary" title="Editar">
                                         <i class="fas fa-edit"></i>

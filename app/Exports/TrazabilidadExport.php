@@ -5,16 +5,16 @@ namespace App\Exports;
 use App\Models\TrazabilidadItem;
 use App\Models\Campania;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithEvents; // OBLIGATORIO
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-// NOTA: Quitamos "ShouldAutoSize" porque rompe el diseño con los encabezados grandes
 class TrazabilidadExport implements FromView, WithStyles, WithEvents
 {
     protected $filtros;
@@ -38,19 +38,26 @@ class TrazabilidadExport implements FromView, WithStyles, WithEvents
             $query->whereDate('fecha_donacion', '<=', $this->filtros['hasta']);
         }
 
-        // ORDENAMIENTO (Vital para que no se mezclen los almacenes)
-        $items = $query->orderBy('almacen_nombre', 'asc')
-                       ->orderBy('estante_codigo', 'asc')
-                       ->orderBy('espacio_codigo', 'asc')
-                       ->orderBy('fecha_donacion', 'desc')
-                       ->get();
+        // ✅ JOIN con ext_paquetes para traer datos_gateway local (sin HTTP)
+        $items = $query->leftJoin('ext_paquetes', 'trazabilidad_items.codigo_paquete', '=', 'ext_paquetes.codigo_paquete')
+            ->select(
+                'trazabilidad_items.*',
+                'ext_paquetes.datos_gateway as datos_gateway',
+                'ext_paquetes.estado as paquete_estado_local',
+                'ext_paquetes.fecha_creacion as paquete_fecha_local'
+            )
+            ->orderBy('almacen_nombre', 'asc')
+            ->orderBy('estante_codigo', 'asc')
+            ->orderBy('espacio_codigo', 'asc')
+            ->orderBy('fecha_donacion', 'desc')
+            ->get();
 
-        $grupos = $items->groupBy(function($item) {
+        $grupos = $items->groupBy(function ($item) {
             return $item->almacen_nombre ?: 'SIN UBICACIÓN / EN TRÁNSITO';
         });
 
-        $campaniaNombre = !empty($this->filtros['campaniaid']) 
-            ? Campania::find($this->filtros['campaniaid'])?->titulo 
+        $campaniaNombre = !empty($this->filtros['campaniaid'])
+            ? Campania::find($this->filtros['campaniaid'])?->titulo
             : 'Todas las Campañas';
 
         return view('reportes.trazabilidad.excel', [
@@ -62,18 +69,20 @@ class TrazabilidadExport implements FromView, WithStyles, WithEvents
 
     public function styles(Worksheet $sheet)
     {
-        return [ 1 => ['font' => ['bold' => true, 'size' => 16]] ];
+        return [
+            1 => ['font' => ['bold' => true, 'size' => 16]]
+        ];
     }
 
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 $highestRow = $sheet->getHighestRow();
 
                 // ---------------------------------------------------------
-                // 1. ANCHOS DE COLUMNA MANUALES (Para evitar los '##')
+                // 1. ANCHOS DE COLUMNA (Ahora son más columnas)
                 // ---------------------------------------------------------
                 $sheet->getColumnDimension('A')->setWidth(15); // Código
                 $sheet->getColumnDimension('B')->setWidth(30); // Producto
@@ -82,30 +91,35 @@ class TrazabilidadExport implements FromView, WithStyles, WithEvents
                 $sheet->getColumnDimension('E')->setWidth(25); // Ubicación
                 $sheet->getColumnDimension('F')->setWidth(15); // Cantidad
                 $sheet->getColumnDimension('G')->setWidth(25); // Donante
-                $sheet->getColumnDimension('H')->setWidth(15); // Estado
+                $sheet->getColumnDimension('H')->setWidth(15); // Estado Item
                 $sheet->getColumnDimension('I')->setWidth(15); // Ingreso
 
-                // 2. ALINEACIÓN VERTICAL (Para que se vea ordenado)
-                $sheet->getStyle('A1:I'.$highestRow)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-                $sheet->getStyle('A1:I'.$highestRow)->getAlignment()->setWrapText(true); // Ajustar texto largo
+                // ✅ NUEVAS (Gateway/Paquete)
+                $sheet->getColumnDimension('J')->setWidth(20); // Código Paquete
+                $sheet->getColumnDimension('K')->setWidth(18); // Estado Paquete
+                $sheet->getColumnDimension('L')->setWidth(20); // Fecha Paquete
+                $sheet->getColumnDimension('M')->setWidth(28); // Destino
 
-                // 3. BUSCAR Y PROCESAR SEPARADORES
+                // 2. ALINEACIÓN / WRAP (Actualizar rango A:M)
+                $sheet->getStyle('A1:M' . $highestRow)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getStyle('A1:M' . $highestRow)->getAlignment()->setWrapText(true);
+
+                // 3. BUSCAR Y PROCESAR SEPARADORES (Actualizar rango A:M)
                 for ($i = 1; $i <= $highestRow; $i++) {
                     $cellValue = $sheet->getCell('A' . $i)->getValue();
 
                     if ($cellValue === '[[SEPARADOR]]') {
-                        $sheet->setCellValue('A' . $i, ''); // Borrar texto
-                        $sheet->getRowDimension($i)->setRowHeight(40); // DAR ALTURA (ESPACIO)
-                        
-                        // Quitar bordes para que se vea blanco limpio
-                        $sheet->getStyle("A$i:I$i")->applyFromArray([
+                        $sheet->setCellValue('A' . $i, '');
+                        $sheet->getRowDimension($i)->setRowHeight(40);
+
+                        $sheet->getStyle("A$i:M$i")->applyFromArray([
                             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_NONE]],
                             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFFFF']]
                         ]);
                     }
                 }
-                
-                // Congelar encabezado
+
+                // Congelar encabezado (si tu header está en fila 6, se mantiene)
                 $sheet->freezePane('A6');
             },
         ];

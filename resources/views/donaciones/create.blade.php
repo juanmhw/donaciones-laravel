@@ -21,19 +21,16 @@
                 <div class="row">
                     {{-- Columna izquierda --}}
                     <div class="col-md-6">
+                        
+                        {{-- CAMBIO AQUÍ: Donante automático (Tú) --}}
                         <div class="form-group">
-                            <label>Donante (opcional)</label>
-                            <select name="usuarioid" class="form-control">
-                                <option value="">Donación anónima</option>
-                                @foreach($usuarios as $u)
-                                    <option value="{{ $u->usuarioid }}" {{ old('usuarioid') == $u->usuarioid ? 'selected' : '' }}>
-                                        {{ $u->nombre }} {{ $u->apellido }} — {{ $u->email }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('usuarioid') <small class="text-danger">{{ $message }}</small> @enderror
+                            <label>Donante (Tú)</label>
+                            <input type="text" class="form-control" 
+                                   value="{{ auth()->user()->nombre }} {{ auth()->user()->apellido }} — {{ auth()->user()->email }}" 
+                                   readonly 
+                                   style="background-color: #e9ecef;">
                             <small class="form-text text-muted">
-                                Si lo dejas vacío, la donación se registrará como anónima.
+                                La donación se registrará a tu nombre.
                             </small>
                         </div>
 
@@ -51,9 +48,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Monto</label>
+                            <label>Monto (Bs)</label>
                             <input type="number" step="0.01" name="monto" class="form-control"
-                                   value="{{ old('monto') }}" required>
+                                   value="{{ old('monto') }}" placeholder="0.00" required>
                             @error('monto') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                     </div>
@@ -98,6 +95,9 @@
                             <label class="form-check-label" for="esanonimaCheck">
                                 Registrar como donación anónima
                             </label>
+                            <small class="d-block text-muted">
+                                (Tu nombre quedará registrado internamente, pero público aparecerá como Anónimo)
+                            </small>
                         </div>
                     </div>
                 </div>

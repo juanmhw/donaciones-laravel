@@ -29,7 +29,7 @@
                                    value="{{ optional($mensaje->remitente)->nombre }} {{ optional($mensaje->remitente)->apellido }}" 
                                    disabled>
                             {{-- Enviamos el ID oculto para que pase la validación del update --}}
-                            <input type="hidden" name="remitenteid" value="{{ $mensaje->remitenteid }}">
+                            <input type="hidden" name="usuarioid" value="{{ $mensaje->remitenteid }}">
                         </div>
 
                         <div class="form-group">

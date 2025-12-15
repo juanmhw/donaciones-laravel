@@ -237,7 +237,13 @@
                                 </li>
                             </ul>
                         </li>
-                        
+
+                        <li class="nav-item">
+                            <a href="{{ route('gateway.trazabilidad.index') }}" class="nav-link {{ request()->routeIs('gateway.trazabilidad.*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-globe-americas"></i>
+                                <p>Situaciones</p>
+                            </a>
+                        </li>
                         @endhasanyrole
 
                         @hasanyrole('Administrador|Almacenero')

@@ -31,7 +31,7 @@
 
                         <div class="form-group">
                             <label>Descripción</label>
-                            <textarea name="descripcion" rows="4" class="form-control" required>{{ old('descripcion', $campania->descripcion) }}</textarea>
+                            <textarea name="descripcion" rows="5" class="form-control" required>{{ old('descripcion', $campania->descripcion) }}</textarea>
                             @error('descripcion') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
@@ -45,6 +45,24 @@
 
                     {{-- Columna derecha --}}
                     <div class="col-md-6">
+                        
+                        {{-- SOLUCIÓN AL ERROR: Mostrar creador original sin select --}}
+                        <div class="form-group">
+                            <label>Creado por</label>
+                            <input type="text" class="form-control" 
+                                   value="{{ optional($campania->creador)->nombre }} {{ optional($campania->creador)->apellido }}" 
+                                   readonly 
+                                   style="background-color: #e9ecef;">
+                            <small class="text-muted">El creador no se puede cambiar.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Meta de recaudación (Bs)</label>
+                            <input type="number" step="0.01" name="metarecaudacion" class="form-control"
+                                   value="{{ old('metarecaudacion', $campania->metarecaudacion) }}" required>
+                            @error('metarecaudacion') <small class="text-danger">{{ $message }}</small> @enderror
+                        </div>
+
                         <div class="form-group">
                             <label>Fecha de inicio</label>
                             <input type="date" name="fechainicio" class="form-control"
@@ -59,43 +77,7 @@
                             @error('fechafin') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
-                        <div class="form-group">
-                            <label>Meta de recaudación (Bs)</label>
-                            <input type="number" step="0.01" name="metarecaudacion" class="form-control"
-                                   value="{{ old('metarecaudacion', $campania->metarecaudacion) }}" required>
-                            @error('metarecaudacion') <small class="text-danger">{{ $message }}</small> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label>Monto recaudado actual (Bs)</label>
-                            <input type="number" step="0.01" name="montorecaudado" class="form-control"
-                                   value="{{ old('montorecaudado', $campania->montorecaudado) }}">
-                            @error('montorecaudado') <small class="text-danger">{{ $message }}</small> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label>Creador de la campaña</label>
-                            <select name="usuarioidcreador" class="form-control" required>
-                                @foreach($usuarios as $u)
-                                    <option value="{{ $u->usuarioid }}"
-                                        {{ old('usuarioidcreador', $campania->usuarioidcreador) == $u->usuarioid ? 'selected' : '' }}>
-                                        {{ $u->nombre }} {{ $u->apellido }} — {{ $u->email }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('usuarioidcreador') <small class="text-danger">{{ $message }}</small> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label>Fecha de creación (opcional)</label>
-                            <input type="datetime-local" name="fechacreacion" class="form-control"
-                                   value="{{ old('fechacreacion', $campania->fechacreacion
-                                        ? \Carbon\Carbon::parse($campania->fechacreacion)->format('Y-m-d\TH:i')
-                                        : '') }}">
-                            @error('fechacreacion') <small class="text-danger">{{ $message }}</small> @enderror
-                        </div>
-
-                        <div class="form-group form-check mt-2">
+                        <div class="form-group form-check mt-3">
                             <input class="form-check-input" type="checkbox" name="activa" value="1"
                                    id="activaCheckEdit" {{ old('activa', $campania->activa) ? 'checked' : '' }}>
                             <label class="form-check-label" for="activaCheckEdit">

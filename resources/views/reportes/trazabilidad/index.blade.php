@@ -1,520 +1,309 @@
 @extends('layouts.app')
 
-@section('title', 'Reporte de Trazabilidad')
-
-@section('header')
-    <h1 class="m-0 text-dark">
-        <i class="fas fa-route mr-2"></i>
-        Reporte de Trazabilidad
-    </h1>
-    <p class="text-muted mb-0">
-        Seguimiento completo de productos donados desde su origen hasta el destino final
-    </p>
-@endsection
+@section('title', 'Inventario de Trazabilidad')
 
 @section('content')
+<div class="content-wrapper">
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-8">
+                <h1><i class="fas fa-warehouse"></i> Inventario de Trazabilidad</h1>
+                <p class="text-muted mb-0">Vista global de existencias físicas y paquetes por almacén.</p>
+            </div>
+            <div class="col-sm-4 text-right">
+                <a href="{{ route('reportes.trazabilidad.pdf') }}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-file-pdf"></i> PDF Global
+                </a>
+                <a href="{{ route('reportes.trazabilidad.excel') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-excel"></i> Excel Global
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
 <div class="container-fluid">
 
-    {{-- FILTROS --}}
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-filter mr-2"></i>
-                        Filtros de búsqueda
-                    </h3>
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </div>
+@forelse($almacenes as $alm)
+    @if($alm->lista_productos->count() || $alm->lista_paquetes->count())
+    <div class="card card-outline card-primary mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="card-title font-weight-bold"><i class="fas fa-building"></i> {{ $alm->nombre }}</h3>
+                    <div class="text-muted text-sm"><i class="fas fa-map-marker-alt"></i> {{ $alm->direccion ?? 'Sin dirección' }}</div>
                 </div>
-                <form method="GET" action="{{ route('reportes.trazabilidad.index') }}">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="campaniaid">
-                                        <i class="fas fa-bullhorn mr-1 text-info"></i>
-                                        Campaña
-                                    </label>
-                                    <select name="campaniaid" id="campaniaid" class="form-control select2">
-                                        <option value="">-- Todas las campañas --</option>
-                                        @foreach($campanias as $campania)
-                                            <option value="{{ $campania->campaniaid }}"
-                                                {{ $campaniaId == $campania->campaniaid ? 'selected' : '' }}>
-                                                {{ $campania->titulo }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="estado">
-                                        <i class="fas fa-info-circle mr-1 text-warning"></i>
-                                        Estado
-                                    </label>
-                                    <select name="estado" id="estado" class="form-control">
-                                        <option value="">-- Todos los estados --</option>
-                                        <option value="En almacén" {{ request('estado') == 'En almacén' ? 'selected' : '' }}>En almacén</option>
-                                        <option value="En tránsito" {{ request('estado') == 'En tránsito' ? 'selected' : '' }}>En tránsito</option>
-                                        <option value="Entregado" {{ request('estado') == 'Entregado' ? 'selected' : '' }}>Entregado</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="buscar">
-                                        <i class="fas fa-search mr-1 text-success"></i>
-                                        Buscar código
-                                    </label>
-                                    <input type="text" name="buscar" id="buscar" class="form-control" 
-                                           value="{{ request('buscar') }}"
-                                           placeholder="Código único del producto">
-                                </div>
-                            </div>
-
-                            <div class="col-md-2 d-flex align-items-end">
-                                <div class="form-group w-100">
-                                    <button class="btn btn-primary btn-block" type="submit">
-                                        <i class="fas fa-search mr-1"></i>
-                                        Filtrar
-                                    </button>
-                                </div>
-                            </div>
-                            <a href="{{ route('reportes.trazabilidad.pdf', ['campaniaid' => request('campaniaid')]) }}" 
-                                class="btn btn-danger" 
-                                target="_blank">
-                                    <i class="fas fa-file-pdf"></i> Exportar a PDF
-                            </a>
-                            {{-- Botón Exportar Excel --}}
-                            <a href="{{ route('reportes.trazabilidad.excel', request()->all()) }}" class="btn btn-success" target="_blank">
-                                <i class="fas fa-file-excel"></i> Exportar Excel
-                            </a>
-                            
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    {{-- ESTADÍSTICAS RÁPIDAS --}}
-    <div class="row mb-3">
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-info elevation-1">
-                    <i class="fas fa-boxes"></i>
-                </span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Total Productos</span>
-                    <span class="info-box-number">
-                        {{ $items->total() }}
-                    </span>
+                <div>
+                    <span class="badge badge-info p-2 mr-2">{{ $alm->lista_productos->count() }} Items</span>
+                    <span class="badge badge-warning p-2">{{ $alm->lista_paquetes->count() }} Paquetes</span>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-warning elevation-1">
-                    <i class="fas fa-warehouse"></i>
-                </span>
-                <div class="info-box-content">
-                    <span class="info-box-text">En Almacén</span>
-                    <span class="info-box-number">
-                        {{ $items->getCollection()->where('estado_actual', 'En almacén')->count() }}
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-primary elevation-1">
-                    <i class="fas fa-truck"></i>
-                </span>
-                <div class="info-box-content">
-                    <span class="info-box-text">En Tránsito</span>
-                    <span class="info-box-number">
-                        {{ $items->getCollection()->where('estado_actual', 'En tránsito')->count() }}
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-success elevation-1">
-                    <i class="fas fa-check-circle"></i>
-                </span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Entregados</span>
-                    <span class="info-box-number">
-                        {{ $items->getCollection()->where('estado_actual', 'Entregado')->count() }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- TABLA DE TRAZABILIDAD --}}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-list mr-2"></i>
-                        Detalle de Trazabilidad
-                    </h3>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped table-valign-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th style="width: 10px">#</th>
-                                    <th>Código</th>
-                                    <th>Producto</th>
-                                    <th>Categoría</th>
-                                    <th>Campaña</th>
-                                    <th class="text-center">Cantidad</th>
-                                    <th>Estado</th>
-                                    <th>Ubicación</th>
-                                    <th>Cronología</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($items as $item)
-                                    @php
-                                        $estadoBadge = [
-                                            'En almacén' => 'warning',
-                                            'En tránsito' => 'primary',
-                                            'Entregado' => 'success',
-                                            'Pendiente' => 'secondary'
-                                        ];
-                                        $estadoIcon = [
-                                            'En almacén' => 'warehouse',
-                                            'En tránsito' => 'truck',
-                                            'Entregado' => 'check-circle',
-                                            'Pendiente' => 'clock'
-                                        ];
-                                        $estado = $item->estado_actual ?? 'Sin definir';
-                                        $badgeClass = $estadoBadge[$estado] ?? 'secondary';
-                                        $icon = $estadoIcon[$estado] ?? 'info-circle';
-                                    @endphp
-
+        <div class="card-body bg-light">
+            <div class="row">
+                {{-- PRODUCTOS --}}
+                <div class="col-lg-7 border-right">
+                    <h5 class="text-primary font-weight-bold mb-3"><i class="fas fa-list"></i> Productos en Stock</h5>
+                    @if($alm->lista_productos->isEmpty())
+                        <div class="alert alert-secondary text-center">No hay productos disponibles.</div>
+                    @else
+                        <div class="table-responsive" style="max-height:400px;">
+                            <table class="table table-sm table-hover">
+                                <thead class="thead-dark sticky-top">
+                                    <tr><th>Código</th><th>Producto</th><th>Ubicación</th><th class="text-center">Cant.</th></tr>
+                                </thead>
+                                <tbody>
+                                @foreach($alm->lista_productos as $prod)
                                     <tr>
-                                        <td>{{ $loop->iteration + $items->firstItem() - 1 }}</td>
-                                        
                                         <td>
-                                            <span class="badge badge-secondary">
-                                                <i class="fas fa-barcode mr-1"></i>
-                                                {{ $item->codigo_unico }}
-                                            </span>
+                                            <span class="badge badge-secondary">{{ $prod->codigo_unico }}</span>
+                                            @if($prod->codigo_paquete) <span class="badge badge-warning ml-1">PKG</span> @endif
                                         </td>
-
                                         <td>
-                                            <strong>{{ $item->nombre_producto }}</strong>
+                                            <strong>{{ $prod->nombre_producto }}</strong><br>
+                                            <small class="text-muted">Donante: {{ $prod->nombre_donante }}</small>
                                         </td>
+                                        <td><span class="badge badge-light">{{ $prod->estante_codigo ?? '-' }} / {{ $prod->espacio_codigo ?? '-' }}</span></td>
+                                        <td class="text-center text-success font-weight-bold">{{ $prod->cantidad_donada }} {{ $prod->unidad_empaque }}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
 
-                                        <td>
-                                            <span class="badge badge-light">
-                                                {{ $item->categoria_producto }}
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <i class="fas fa-bullhorn text-muted mr-1"></i>
-                                            {{ $item->campania->titulo ?? $item->campania_nombre }}
-                                        </td>
-
-                                        <td class="text-center">
-                                            <span class="badge badge-info">
-                                                {{ $item->cantidad_donada }}
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <span class="badge badge-{{ $badgeClass }}">
-                                                <i class="fas fa-{{ $icon }} mr-1"></i>
-                                                {{ $estado }}
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <i class="fas fa-map-marker-alt text-danger mr-1"></i>
-                                            {{ $item->ubicacion_actual }}
-                                        </td>
-
-                                        <td>
-                                            <small class="text-muted">
-                                                @if($item->fecha_donacion)
-                                                    <i class="fas fa-calendar-plus text-success mr-1"></i>
-                                                    Donación: {{ \Carbon\Carbon::parse($item->fecha_donacion)->format('d/m/Y') }}
-                                                    <br>
-                                                @endif
-                                                @if($item->fecha_salida)
-                                                    <i class="fas fa-calendar-check text-primary mr-1"></i>
-                                                    Salida: {{ \Carbon\Carbon::parse($item->fecha_salida)->format('d/m/Y') }}
-                                                    <br>
-                                                @endif
-                                                @if($item->destino_final)
-                                                    <i class="fas fa-flag-checkered text-warning mr-1"></i>
-                                                    Destino: {{ $item->destino_final }}
-                                                @endif
-                                            </small>
-                                        </td>
-
-                                        <td class="text-center">
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-info" 
-                                                        data-toggle="modal" 
-                                                        data-target="#modalDetalle{{ $item->trazabilidadid }}"
-                                                        title="Ver detalles">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
+                {{-- PAQUETES --}}
+                <div class="col-lg-5">
+                    <h5 class="text-warning font-weight-bold mb-3"><i class="fas fa-cubes"></i> Paquetes Armados</h5>
+                    @if($alm->lista_paquetes->isEmpty())
+                        <div class="alert alert-secondary text-center">No existen paquetes asociados.</div>
+                    @else
+                        <div style="max-height:400px; overflow-y:auto;">
+                            @foreach($alm->lista_paquetes as $pack)
+                                <div class="card card-outline card-warning mb-2">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <strong><i class="fas fa-cube"></i> {{ $pack->codigo_paquete }}</strong>
+                                                <div class="text-muted text-sm">
+                                                    <i class="far fa-calendar-alt"></i> {{ $pack->fecha_creacion_paquete ? \Carbon\Carbon::parse($pack->fecha_creacion_paquete)->format('d/m/Y') : 'N/A' }}
+                                                </div>
                                             </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="10" class="text-center py-5">
-                                            <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
-                                            <h5 class="text-muted">No hay datos disponibles</h5>
-                                            <p class="text-muted">
-                                                Intenta ajustar los filtros de búsqueda
-                                            </p>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                                            <span class="badge badge-warning">{{ $pack->items_count }} items</span>
+                                        </div>
+                                        <hr class="my-2">
+                                        {{-- BOTÓN MODAL --}}
+                                        <button type="button" class="btn btn-sm btn-outline-dark btn-block btn-ver-gateway" data-codigo="{{ $pack->codigo_paquete }}">
+                                            <i class="fas fa-search-plus"></i> Ver Detalles
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
-
-                {{-- PAGINACIÓN --}}
-                @if($items->hasPages())
-                    <div class="card-footer clearfix">
-                        <div class="float-left">
-                            <p class="text-muted mb-0">
-                                Mostrando {{ $items->firstItem() }} a {{ $items->lastItem() }} 
-                                de {{ $items->total() }} registros
-                            </p>
-                        </div>
-                        <div class="float-right">
-                            {{ $items->withQueryString()->links() }}
-                        </div>
-                    </div>
-                @endif
             </div>
         </div>
     </div>
+    @endif
+@empty
+    <div class="text-center py-5">
+        <i class="fas fa-warehouse fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No existen almacenes sincronizados</h4>
+    </div>
+@endforelse
 
-    {{-- MODALES DE DETALLE (fuera de la tabla) --}}
-    @foreach ($items as $item)
-        @php
-            $estadoBadge = [
-                'En almacén' => 'warning',
-                'En tránsito' => 'primary',
-                'Entregado' => 'success',
-                'Pendiente' => 'secondary'
-            ];
-            $estado = $item->estado_actual ?? 'Sin definir';
-            $badgeClass = $estadoBadge[$estado] ?? 'secondary';
-        @endphp
+</div>
+</section>
+</div>
 
-        <div class="modal fade" id="modalDetalle{{ $item->trazabilidadid }}" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header bg-info">
-                        <h5 class="modal-title">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            Detalle de Trazabilidad - {{ $item->codigo_unico }}
-                        </h5>
-                        <button type="button" class="close" data-dismiss="modal">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="text-bold">Información del Producto</h6>
-                                <dl class="row">
-                                    <dt class="col-sm-5">Código:</dt>
-                                    <dd class="col-sm-7">{{ $item->codigo_unico }}</dd>
-                                    
-                                    <dt class="col-sm-5">Producto:</dt>
-                                    <dd class="col-sm-7">{{ $item->nombre_producto }}</dd>
-                                    
-                                    <dt class="col-sm-5">Categoría:</dt>
-                                    <dd class="col-sm-7">{{ $item->categoria_producto }}</dd>
-                                    
-                                    <dt class="col-sm-5">Cantidad:</dt>
-                                    <dd class="col-sm-7">{{ $item->cantidad_donada }}</dd>
-                                </dl>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="text-bold">Estado y Ubicación</h6>
-                                <dl class="row">
-                                    <dt class="col-sm-5">Estado Actual:</dt>
-                                    <dd class="col-sm-7">
-                                        <span class="badge badge-{{ $badgeClass }}">
-                                            {{ $estado }}
-                                        </span>
-                                    </dd>
-                                    
-                                    <dt class="col-sm-5">Ubicación:</dt>
-                                    <dd class="col-sm-7">{{ $item->ubicacion_actual }}</dd>
-                                    
-                                    <dt class="col-sm-5">Destino Final:</dt>
-                                    <dd class="col-sm-7">{{ $item->destino_final ?? 'N/A' }}</dd>
-                                </dl>
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <h6 class="text-bold">
-                            <i class="fas fa-clock mr-2"></i>
-                            Cronología
-                        </h6>
-                        <div class="timeline">
-                            @if($item->fecha_donacion)
-                                <div class="time-label">
-                                    <span class="bg-success">
-                                        {{ \Carbon\Carbon::parse($item->fecha_donacion)->format('d/m/Y') }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <i class="fas fa-hand-holding-heart bg-success"></i>
-                                    <div class="timeline-item">
-                                        <h3 class="timeline-header">Donación Recibida</h3>
-                                        <div class="timeline-body">
-                                            Producto ingresado al sistema
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if($item->fecha_salida)
-                                <div class="time-label">
-                                    <span class="bg-primary">
-                                        {{ \Carbon\Carbon::parse($item->fecha_salida)->format('d/m/Y') }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <i class="fas fa-truck bg-primary"></i>
-                                    <div class="timeline-item">
-                                        <h3 class="timeline-header">Salida del Almacén</h3>
-                                        <div class="timeline-body">
-                                            Producto en tránsito hacia destino final
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <div>
-                                <i class="fas fa-clock bg-gray"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                            Cerrar
-                        </button>
-                    </div>
-                </div>
-            </div>
+{{-- MODAL REUTILIZABLE (Misma estructura, textos limpios) --}}
+<div class="modal fade" id="modalGateway" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title"><i class="fas fa-cube"></i> Detalle de Paquete <span class="badge badge-dark ml-2" id="gwCodigo">...</span></h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div id="gwLoading" class="text-center py-4" style="display:none;">
+          <div class="spinner-border text-warning" role="status"></div>
+          <div class="text-muted mt-2">Cargando información...</div>
         </div>
-    @endforeach
-
+        <div id="gwError" class="alert alert-danger" style="display:none;"></div>
+        <div id="gwContent" style="display:none;">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="info-box bg-info">
+                <span class="info-box-icon"><i class="fas fa-info-circle"></i></span>
+                <div class="info-box-content"><span class="info-box-text">Estado</span><span class="info-box-number" id="gwEstado">-</span></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-box bg-success">
+                <span class="info-box-icon"><i class="fas fa-boxes"></i></span>
+                <div class="info-box-content"><span class="info-box-text">Total productos</span><span class="info-box-number" id="gwTotalProductos">0</span></div>
+              </div>
+            </div>
+          </div>
+          {{-- Resto del contenido del modal igual, solo textos limpios --}}
+          <div class="text-muted mb-2"><strong>Fecha creación:</strong> <span id="gwFecha">-</span> | <strong>Registros salida:</strong> <span id="gwSalidas">0</span></div>
+          <div class="text-muted mb-3"><strong>Registrado por:</strong> <span id="gwUsuario">-</span></div>
+          <hr>
+          <h6 class="font-weight-bold mb-2"><i class="fas fa-list"></i> Contenido</h6>
+          <div class="table-responsive" style="max-height:260px;">
+            <table class="table table-sm table-hover">
+              <thead class="thead-light"><tr><th>Producto</th><th class="text-center">Cant.</th><th>Donante</th><th>Fecha</th></tr></thead>
+              <tbody id="gwDetalles"></tbody>
+            </table>
+          </div>
+          <div class="mt-3">
+            <h6 class="font-weight-bold mb-2"><i class="fas fa-truck"></i> Historial de Salidas</h6>
+            <ul class="list-group" id="gwRegistrosSalida"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 @endsection
 
-@push('styles')
-<style>
-    .timeline {
-        position: relative;
-        margin: 0 0 30px 0;
-        padding: 0;
-        list-style: none;
-    }
-    .timeline:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: #ddd;
-        left: 31px;
-        margin: 0;
-    }
-    .timeline > div {
-        margin-bottom: 15px;
-        position: relative;
-    }
-    .timeline > div > .timeline-item {
-        box-shadow: 0 1px 1px rgba(0,0,0,.1);
-        border-radius: .25rem;
-        background: #fff;
-        color: #495057;
-        margin-left: 60px;
-        margin-right: 15px;
-        margin-top: 0;
-        padding: 10px;
-        position: relative;
-    }
-    .timeline > div > .fa,
-    .timeline > div > .fas,
-    .timeline > div > .far {
-        width: 30px;
-        height: 30px;
-        font-size: 15px;
-        line-height: 30px;
-        position: absolute;
-        color: #fff;
-        background: #999;
-        border-radius: 50%;
-        text-align: center;
-        left: 18px;
-        top: 0;
-    }
-    .timeline > .time-label > span {
-        font-weight: 600;
-        padding: 5px;
-        display: inline-block;
-        background-color: #fff;
-        border-radius: .25rem;
-    }
-    .timeline-header {
-        margin: 0;
-        color: #495057;
-        border-bottom: 1px solid rgba(0,0,0,.125);
-        padding: 5px 0;
-        font-size: 16px;
-        line-height: 1.1;
-    }
-    .timeline-body {
-        padding: 10px 0 0 0;
-    }
-</style>
-@endpush
-
+@push('scripts')
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        if($.fn.select2) {
-            $('.select2').select2({
-                theme: 'bootstrap4',
-                placeholder: 'Seleccione una opción'
-            });
-        }
+function safeText(v, fallback='-') {
+  return (v === null || v === undefined || v === '') ? fallback : v;
+}
+
+function renderGatewayModal(payload) {
+  // payload puede ser: {codigo_paquete, services:{donaciones:{...}}}
+  // o directamente el bloque guardado en DB. Lo normalizamos:
+  const data = payload || {};
+
+  let don = null;
+
+  // Caso 1: respuesta completa del gateway
+  if (data.services && data.services.donaciones) {
+    don = data.services.donaciones;
+  }
+
+  // Caso 2: guardaste SOLO services
+  if (!don && data.donaciones) {
+    don = data.donaciones;
+  }
+
+  // Caso 3: guardaste SOLO el bloque donaciones
+  if (!don && data.success !== undefined && (data.paquete || data.detalles || data.registros_salida)) {
+    don = data;
+  }
+
+  if (!don || don.success !== true) {
+    $('#gwError').show().text('El Gateway respondió, pero no hay datos del servicio de donaciones.');
+    return;
+  }
+
+  const paquete = don.paquete || {};
+  $('#gwEstado').text(safeText(paquete.estado));
+  $('#gwTotalProductos').text(safeText(paquete.total_productos, 0));
+  $('#gwFecha').text(safeText(paquete.fecha_creacion));
+  $('#gwSalidas').text(safeText(paquete.total_registros_salida, 0));
+
+  const usr = paquete.usuario_registro || {};
+  const usrTxt = usr.nombre_completo ? `${usr.nombre_completo}${usr.ci ? ' ('+usr.ci+')' : ''}` : '-';
+  $('#gwUsuario').text(usrTxt);
+
+  // Tabla detalles
+  const detalles = Array.isArray(don.detalles) ? don.detalles : [];
+  let htmlDet = '';
+  if (!detalles.length) {
+    htmlDet = `<tr><td colspan="4" class="text-center text-muted">Sin contenido</td></tr>`;
+  } else {
+    detalles.forEach(d => {
+      const prod = d.producto?.nombre ?? '-';
+      const cant = d.cantidad_usada ?? '-';
+      const donante = d.donacion?.donante?.nombre ?? '-';
+      const fecha = d.donacion?.fecha ?? '-';
+
+      htmlDet += `
+        <tr>
+          <td class="font-weight-bold text-primary">${prod}</td>
+          <td class="text-center">${cant}</td>
+          <td>${donante}</td>
+          <td>${fecha}</td>
+        </tr>
+      `;
     });
+  }
+  $('#gwDetalles').html(htmlDet);
+
+  // Lista de salidas
+  const salidas = Array.isArray(don.registros_salida) ? don.registros_salida : [];
+  let htmlSal = '';
+  if (!salidas.length) {
+    htmlSal = `<li class="list-group-item text-muted">Sin salidas</li>`;
+  } else {
+    salidas.forEach(s => {
+      htmlSal += `
+        <li class="list-group-item">
+          <div class="d-flex justify-content-between">
+            <strong>${safeText(s.destino)}</strong>
+            <span class="text-muted">${safeText(s.fecha_salida)}</span>
+          </div>
+          <div class="text-muted text-sm">Obs: ${safeText(s.observaciones, 'N/A')}</div>
+        </li>
+      `;
+    });
+  }
+  $('#gwRegistrosSalida').html(htmlSal);
+}
+
+$(document).on('click', '.btn-ver-gateway', function () {
+  const codigo = $(this).data('codigo');
+
+  $('#gwCodigo').text(codigo);
+
+  // Reset UI
+  $('#gwError').hide().text('');
+  $('#gwContent').hide();
+  $('#gwLoading').show();
+
+  $('#gwEstado').text('-');
+  $('#gwTotalProductos').text('0');
+  $('#gwFecha').text('-');
+  $('#gwSalidas').text('0');
+  $('#gwUsuario').text('-');
+  $('#gwDetalles').html(`<tr><td colspan="4" class="text-center text-muted">Cargando...</td></tr>`);
+  $('#gwRegistrosSalida').html(`<li class="list-group-item text-muted">Cargando...</li>`);
+
+  $('#modalGateway').modal('show');
+
+  $.get("{{ url('/reportes/trazabilidad/paquete') }}/" + codigo + "/ajax")
+    .done(function(res){
+      // OJO: tu controller devuelve {success:true, data: ...}
+      if (!res || res.success !== true) {
+        $('#gwLoading').hide();
+        $('#gwError').show().text(res?.message || 'Respuesta inválida del servidor.');
+        return;
+      }
+
+      renderGatewayModal(res.data);
+
+      $('#gwLoading').hide();
+      $('#gwContent').show();
+    })
+    .fail(function(xhr){
+      $('#gwLoading').hide();
+      $('#gwError').show().text('No se pudo obtener información (AJAX falló).');
+      console.log('AJAX fail', xhr);
+    });
+});
 </script>
 @endpush

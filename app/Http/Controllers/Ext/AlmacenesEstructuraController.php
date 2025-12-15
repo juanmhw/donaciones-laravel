@@ -9,8 +9,8 @@ class AlmacenesEstructuraController extends Controller
 {
     public function index()
     {
-        // Trae almacenes con estantes y espacios
-        $almacenes = ExtAlmacen::with(['estantes.espacios'])
+        // Trae almacenes -> estantes -> espacios -> Y AHORA LOS ITEMS DENTRO
+        $almacenes = ExtAlmacen::with(['estantes.espacios.items']) 
             ->orderBy('nombre')
             ->get();
 

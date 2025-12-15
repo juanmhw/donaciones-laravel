@@ -35,7 +35,11 @@ return [
         ],
     ],
     'externos' => [
-        'base_url' => env('EXTERNAL_API_URL', 'http://localhost:8000'),
+        // API 1: Gestión de donaciones y almacenes (La que está en tu archivo "apis traza")
+        'donaciones_url' => env('API_DONACIONES_URL', 'http://donaciones.dasalas.shop'),
+
+        // API 2: Gateway de trazabilidad (La nueva para los paquetes)
+        'gateway_url'    => env('API_GATEWAY_URL', 'http://gatealas.dasalas.shop'),
     ],
 
 ];

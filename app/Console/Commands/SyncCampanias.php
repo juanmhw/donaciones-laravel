@@ -1,43 +1,43 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Console\Commands;
 
-use App\Models\Campania;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use App\Models\Campania;
 
-class ApiCampaniaSyncController extends Controller
+class SyncCampanias extends Command
 {
-    public function sync()
+    protected $signature = 'sync:campanias';
+    protected $description = 'Sincroniza campañas desde API externa';
+
+    public function handle(): int
     {
-        // ✅ Usamos la configuración centralizada
         $baseUrl = config('services.externos.donaciones_url');
 
-        // 1. Llamar a la API externa
-        $response = Http::get("{$baseUrl}/api/campanas");
+        $resp = Http::timeout(20)->get("{$baseUrl}/api/campanas");
 
-        if ($response->failed()) {
-            return back()->withErrors('No se pudo conectar a la API de campañas en: ' . $baseUrl);
+        if ($resp->failed()) {
+            $this->error("No se pudo conectar a /api/campanas en {$baseUrl}");
+            return self::FAILURE;
         }
 
-        $campanasExternas = $response->json();
+        $campanasExternas = $resp->json();
 
         DB::transaction(function () use ($campanasExternas) {
             foreach ($campanasExternas as $c) {
-                // Buscamos la campaña por idexterno
                 $campania = Campania::firstOrNew([
                     'idexterno' => $c['id_campana'],
                 ]);
 
-                // Actualizamos solo los datos que vienen de la API
                 $campania->titulo      = $c['nombre'];
                 $campania->descripcion = $c['descripcion'];
                 $campania->fechainicio = $c['fecha_inicio'];
                 $campania->fechafin    = $c['fecha_fin'];
                 $campania->imagenurl   = $c['imagen_banner'] ?? null;
 
-                // Estos campos SON LOCALES, no los tocamos si ya existen
-                if (! $campania->exists) {
+                if (!$campania->exists) {
                     $campania->metarecaudacion = 0;
                     $campania->montorecaudado  = 0;
                     $campania->usuarioidcreador = 1;
@@ -48,6 +48,7 @@ class ApiCampaniaSyncController extends Controller
             }
         });
 
-        return back()->with('success', 'Campañas sincronizadas exitosamente desde la API externa.');
+        $this->info('Campañas sincronizadas OK.');
+        return self::SUCCESS;
     }
 }

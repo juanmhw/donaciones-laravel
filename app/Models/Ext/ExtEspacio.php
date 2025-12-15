@@ -21,4 +21,11 @@ class ExtEspacio extends Model
     {
         return $this->belongsTo(ExtEstante::class, 'estanteid', 'estanteid');
     }
+    // Relación para ver qué items de trazabilidad están en este espacio
+    public function items()
+    {
+        // 'espacioid' en TrazabilidadItem referencia a 'espacioid' en ExtEspacio
+        return $this->hasMany(\App\Models\TrazabilidadItem::class, 'espacioid', 'espacioid')
+                    ->where('estado_actual', 'En almacén'); // Opcional: solo mostrar lo que sigue ahí físicamente
+    }
 }
