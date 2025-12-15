@@ -12,32 +12,31 @@ services:
       APP_NAME: Laravel
       APP_ENV: local
       APP_DEBUG: "true"
-      # TU CLAVE REAL:
       APP_KEY: "base64:X8nyK98ag/d2uCKYgyPchsPAZia71misVstUk6G7sto="
       APP_URL: "http://localhost"
       
-      # CONEXIÓN BASE DE DATOS (INTERNA DE DOCKER)
+      # BASE DE DATOS
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
-      DB_DATABASE: donaciones  # <--- CORREGIDO (era donacionespro)
+      DB_DATABASE: donaciones
       DB_USERNAME: postgres
       DB_PASSWORD: "123"
 
-      # TUS APIS REALES
+      # TUS APIS
       API_DONACIONES_URL: "http://donaciones.dasalas.shop"
       API_GATEWAY_URL: "http://gatealas.dasalas.shop"
 
-      # CONFIGURACIÓN
+      # CONFIGURACIÓN GENERAL
       QUEUE_CONNECTION: database
       SESSION_DRIVER: database
-      CACHE_STORE: file  # <--- Lo dejé en file como tu .env, aunque database es mejor en prod.
+      CACHE_STORE: file
     depends_on:
       - db
     networks:
       - transparencia-net
 
-  # --- EL SCHEDULER (CRON) ---
+  # --- SCHEDULER (CRON AUTOMÁTICO) ---
   scheduler:
     build:
       context: .
@@ -48,7 +47,6 @@ services:
     volumes:
       - .:/var/www
     environment:
-      # MISMAS VARIABLES QUE ARRIBA PARA QUE FUNCIONE IGUAL
       APP_KEY: "base64:X8nyK98ag/d2uCKYgyPchsPAZia71misVstUk6G7sto="
       DB_CONNECTION: pgsql
       DB_HOST: db
@@ -66,10 +64,13 @@ services:
     networks:
       - transparencia-net
 
-  # --- SERVIDOR WEB ---
+  # --- SERVIDOR WEB (NGINX) ---
   nginx:
     image: nginx:alpine
-    container_name: transparencia-donaciones-nginx
+    # ----------------------------------------
+    # ⚠️ CAMBIO SOLICITADO:
+    container_name: emergencias
+    # ----------------------------------------
     restart: unless-stopped
     ports:
       - "80:80"
@@ -87,7 +88,7 @@ services:
     container_name: transparencia-donaciones-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: donaciones # <--- CORREGIDO
+      POSTGRES_DB: donaciones
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "123"
     volumes:

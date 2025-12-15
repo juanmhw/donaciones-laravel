@@ -7,27 +7,25 @@ if [ ! -f .env ]; then
     cp .env.example .env
 fi
 
-# Instalar dependencias PHP
-echo "📦 Instalando dependencias de Composer..."
+# Instalar dependencias
+echo "📦 Instalando dependencias..."
 composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Permisos (Crítico para que Laravel escriba logs y sesiones)
+# Permisos
 echo "🔒 Asignando permisos..."
 chmod -R 777 storage bootstrap/cache
 
-# Generar Key si falta
+# Generar Key
 php artisan key:generate --force
 
-# Migraciones
+# Migraciones y Seeders
 echo "🗄️ Ejecutando migraciones..."
 php artisan migrate --force
 
-# --- AQUÍ ESTÁ LO QUE FALTABA ---
 echo "🌱 Ejecutando Seeders..."
 php artisan db:seed --force
-# --------------------------------
 
-# Enlace simbólico almacenamiento (para imágenes públicas)
+# Storage Link
 php artisan storage:link
 
 echo "🚀 Iniciando PHP-FPM..."
